@@ -1,0 +1,75 @@
+{% macro thumbnails(model) -%}
+    {% for cvs in model.manifest["items"] %}
+        {% set thumb = model.get_thumbnail(cvs) %}
+        {% set thumb_label_id = "thumbLabel" ~ loop.index %}
+        {% set canvas_label = model.single_string(cvs, "label", "Canvas " ~ loop.index) %}
+        <div class="thumbnail">
+            <a href="{{ model.canvas_url(model.source, model.manifest, cvs) }}"
+                aria-labelledby="{{ thumb_label_id }}">
+                <img src="{{ thumb.id }}"
+                     width="{{ thumb.width }}" height="{{ thumb.height }}"
+                     alt="{{ canvas_label }}"
+                />
+            </a>
+            <p id="{{ thumb_label_id }}">{{ canvas_label }}</p>
+        </div>
+    {%  endfor %}
+{%- endmacro %}
+
+
+{% macro large_image(model, described_by_label) -%}
+    {% set image = model.get_static_image(model.canvas) %}
+    <img src="{{ image.id }}"
+         width="{{ image.width }}" height="{{ image.height }}"
+         aria-describedby="{{ described_by_label }}"
+    />
+{%- endmacro %}
+
+
+{% macro text_lines(model) -%}
+    <div class="text-lines-container">
+        {% for line in model.text_lines %}
+            <span>{{ line }}</span>
+        {% endfor %}
+    </div>
+{%- endmacro %}
+
+
+{% macro metadata(model) -%}
+    <div class="metadata-container">
+        {% if model.canvas.metadata %}
+            <dl>
+                {% for pair in model.canvas.metadata %}
+                    {{ metadata_pair(model, pair) }}
+                {% endfor %}
+            </dl>
+            <hr/>
+            <h3>Manifest metadata</h3>
+        {% endif %}
+        {% for pair in model.manifest.metadata %}
+            <dl>
+                {{ metadata_pair(model, pair) }}
+            </dl>
+        {% endfor %}
+    </div>
+{%- endmacro %}
+
+
+{% macro metadata_pair(model, pair) -%}
+    <dt>
+        {% for string_value in model.strings(pair, "label") %}
+            {{ string_value | safe }}
+            {% if not loop.last %}
+               <br/>
+            {% endif %}
+        {% endfor %}
+    </dt>
+    <dd>
+        {% for string_value in model.strings(pair, "value") %}
+            {{ string_value | safe }}
+            {% if not loop.last %}
+               <br/>
+            {% endif %}
+        {% endfor %}
+    </dd>
+{%- endmacro %}

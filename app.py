@@ -60,7 +60,7 @@ def iiif_canvas(source, path):
         canvas_q = request.args.get("canvas")
         # support index values and id values for canvas param
         if canvas_q.isdigit():
-            canvas = manifest.items[int(canvas_q)]
+            canvas = manifest["items"][int(canvas_q)]
         else:
             full_canvas_id = canvas_q
     else:
@@ -137,8 +137,13 @@ def get_page_model(source, manifest, canvas=None):
         "canvas": canvas,
         "canvas_index": -1,
         "manifest_url": manifest_url(source, manifest),
+        # helpers:
         "canvas_url": canvas_url,
-        "single_string": get_single_string
+        "manifest_url": manifest_url,
+        "single_string": get_single_string,
+        "strings": get_strings,
+        "get_thumbnail": get_thumbnail,
+        "get_static_image": get_static_image
     }
     if canvas is not None:
         for idx, cvs in enumerate(manifest["items"]):
@@ -153,14 +158,14 @@ def index():
     return render_template('index.html', label='The Exploded Viewer')
 
 
-def get_single_string(iiif, prop_name, lang=config["DEFAULT_LANGUAGE"]):
-    strings = get_strings(iiif, prop_name, lang)
+def get_single_string(iiif, prop_name, fallback=None, lang=config["DEFAULT_LANGUAGE"]):
+    strings = get_strings(iiif, prop_name, fallback, lang)
     if len(strings) > 0:
         return strings[0]
     return ''
 
 
-def get_strings(iiif, prop_name, lang=config["DEFAULT_LANGUAGE"]):
+def get_strings(iiif, prop_name, fallback=None, lang=config["DEFAULT_LANGUAGE"]):
     lang_map = iiif.get(prop_name, None)
     if lang_map is not None:
         val = lang_map.get(lang, None)
@@ -172,7 +177,10 @@ def get_strings(iiif, prop_name, lang=config["DEFAULT_LANGUAGE"]):
         if val is not None:
             return val
 
-    return []
+    if fallback is None:
+        return []
+
+    return [fallback]
 
 
 def get_static_image(canvas, preferred_size=config["LARGE_IMAGE_SIZE"]):

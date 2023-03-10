@@ -1,25 +1,22 @@
 {% extends "layout.html" %}
+{% import 'macros.html' as macros %}
 
 {% block content %}
 
 
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
             <div class="col"><h1>{{ model.label }}</h1></div>
         </div>
 
       <div class="row">
         <div class="col-sm-8">
-            <ul>
-                {% for cvs in model.manifest["items"] %}
-                    <li>
-                        <a href="{{ model.canvas_url(model.source, model.manifest, cvs) }}">{{ model.single_string(cvs, "label") }}</a>
-                    </li>
-                {%  endfor %}
-            </ul>
+            <div class="thumbnail-container">
+                {{ macros.thumbnails(model) }}
+            </div>
         </div>
         <div class="col-sm-4">
-            Metadata
+            {{ macros.metadata(model) }}
         </div>
       </div>
     </div>

@@ -1,20 +1,47 @@
 {% extends "layout.html" %}
-{% block title %}Image {{ model.canvas_index }}/{{ model.total_canvases }} of {{ label }}{% endblock %}
+{% import 'macros.html' as macros %}
+{% block title %}Image {{ model.canvas_index }}/{{ model.total_canvases }} of {{ model.label }}{% endblock %}
 
 {% block content %}
     <div class="container-fluid">
         <div class="row">
-            <div class="col"><h1>{{ label }}</h1></div>
+            <div class="col">
+                <h1>
+                    {{ model.label }}<br/>
+                    {{ model.canvas_index }}/{{ model.total_canvases }}
+                </h1>
+                <p><a href="{{ model.manifest_url(model.source, model.manifest) }}">Back to manifest</a></p>
+            </div>
         </div>
 
-      <div class="row">
-        <div class="col-sm-8">
-            Image
-            Thumbs
+        <div class="row">
+            {% set described_by_label = "canvasDescription" ~ model.canvas_index %}
+            {% set canvas_label = model.single_string(model.canvas, "label", none) ~ " (canvas " ~ (model.canvas_index + 1) ~ ")" %}
+            {% if model.text_lines is not none %}
+                <div class="col-sm-4">
+                    {{ macros.large_image(model, described_by_label) }}
+                </div>
+                <div class="col-sm-4">
+                    <div class="canvas-description" id="{{ described_by_label }}">
+                        <h2>{{ canvas_label }}</h2>
+                        <p><em>The image contains the following text:</em></p>
+                        {{ macros.text_lines(model) }}
+                    </div>
+                </div>
+            {% else %}
+                <div class="col-sm-8">
+                    {{ macros.large_image(model, described_by_label) }}
+                    <p id="{{ described_by_label }}">{{ canvas_label }}</p>
+                </div>
+            {% endif %}
+            <div class="col-sm-2">
+                <div class="thumbnail-container">
+                    {{ macros.thumbnails(model) }}
+                </div>
+            </div>
+            <div class="col-sm-2">
+                {{ macros.metadata(model) }}
+            </div>
         </div>
-        <div class="col-sm-4">
-            Metadata
-        </div>
-      </div>
     </div>
 {% endblock %}

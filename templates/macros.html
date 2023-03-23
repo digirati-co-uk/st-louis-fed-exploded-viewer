@@ -5,7 +5,12 @@
         {% set canvas_label = model.single_string(cvs, "label", "Canvas " ~ loop.index) %}
         <div class="thumbnail">
             <a href="{{ model.canvas_url(model.source, model.manifest, cvs) }}"
-                aria-labelledby="{{ thumb_label_id }}">
+                aria-labelledby="{{ thumb_label_id }}"
+                {% if loop.index0 == model.canvas_index %}
+                    aria-current="page"
+                    class="active"
+                {% endif %}
+            >
                 <img src="{{ thumb.id }}"
                      width="{{ thumb.width }}" height="{{ thumb.height }}"
                      alt="{{ canvas_label }}"
@@ -72,4 +77,49 @@
             {% endif %}
         {% endfor %}
     </dd>
+{%- endmacro %}
+
+{% macro navigator(model) -%}
+
+    <div class="btn-group" role="group" aria-label="Canvas Navigation">
+
+        <a aria-label="Previous canvas"
+           {% if model.prev_canvas %}
+                class="btn btn-outline-primary"
+                href="{{ model.canvas_url(model.source, model.manifest, model.prev_canvas) }}"
+           {% else %}
+                class="btn btn-outline-primary disabled"
+                aria-disabled="true"
+           {% endif %}
+        >
+            &lt; Previous Canvas
+        </a>
+        <a aria-label="View all Canvases"
+           {% if model.manifest %}
+                class="btn btn-outline-primary"
+                href="{{ model.manifest_url(model.source, model.manifest) }}"
+           {% else %}
+                class="btn btn-outline-primary disabled"
+                aria-disabled="true"
+           {% endif %}
+        >
+           View Manifest
+        </a>
+        <a aria-label="Next canvas"
+           {% if model.next_canvas %}
+                class="btn btn-outline-primary"
+                href="{{ model.canvas_url(model.source, model.manifest, model.next_canvas) }}"
+           {% elif model.manifest %}
+                class="btn btn-outline-primary"
+                href="{{ model.canvas_url(model.source, model.manifest, model.manifest["items"][0]) }}"
+           {% else %}
+                class="btn btn-outline-primary disabled"
+                aria-disabled="true"
+           {% endif %}
+        >
+            Next Canvas &gt;
+        </a>
+
+    </div>
+
 {%- endmacro %}

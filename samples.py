@@ -1,0 +1,219 @@
+SAMPLES = {
+    "@context": "",
+    "id": "/samples.json",
+    "type": "Collection",
+    "label": {
+        "en": [
+            "Sample manifests"
+        ]
+    },
+    "items": [
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b19854699",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Documents for Chapter 10-12"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b21436824",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Interior of an Alchemical Laboratory"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b21537951",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Warne's model cookery and housekeeping book : containing complete instructions in household management"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b19431132",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Cyprianus, M. L."
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b18633419",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Scrapbook of programmes and concert arrangements of the RAMC band"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b19255366",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Lowdham, Caleb (fl. 1665-1712), surgeon, Exeter"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b20442324",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Sex efficiency through exercises : special physical culture for women"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b19979186",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Travel - Maps and Guides"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b28545187",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "A purple head in anguish, with arms raised. Watercolour by M. Bishop, 1967."
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b29918194",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "[Report 1960]"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b21891990",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "5 Laminated colour photographs of aerial view of Glasgow with Gartnavel at the centre"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b19984960",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "40th Anniversary of Double Helix - Installation of the Bronze Helix (2 folders)"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b20425272",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "The philosophy of beards : a lecture : physiological, artistic & historical"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b18863231",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "First World War photographs of military hospitals"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b19691087",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "The Queen's Roll: 6301-6550"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b21895466",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Admission documents (male)"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b16698800",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "A central circle with four penis-like extensions surrounded by numerous small circles and flower shapes in each corner"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b19851777",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Chapter 10 references [photos] (3 of 3)"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b24875880",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Merveilles du génie de l'homme : découvertes, inventions, récits, historiques, amusants et instructifs sur l'origine et l'état actuel des découvertes..."
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b28644475",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Grids and droplets. Watercolour by M. Bishop, 196- (?)."
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b19251051",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Scrapbook re the First World War and the Easter Rising in Dublin, including photographs of training dogs to track down wounded..."
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b15657930",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Japanese funeral customs: the cortège leaves the dead man's house for the temple. Watercolour, ca. 1880 (?)."
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b20046613",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Papers of M H F Wilkins: press cuttings relating to DNA research"
+                ]
+            }
+        }
+    ]
+}

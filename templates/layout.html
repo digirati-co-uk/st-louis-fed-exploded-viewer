@@ -1,3 +1,4 @@
+{% import 'macros.html' as macros %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -14,9 +15,31 @@
             height: 5em;
             width: 5em;
         }
+        .thumbnail .active img{
+            border: 2px solid blue;
+        }
+        h1 {
+            font-size: 1.6em;
+        }
+
+        .text-lines-container span{
+            display: block;
+        }
     </style>
 </head>
 <body>
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">Exploded Viewer</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+        {{ macros.navigator(model) }}
+    </div>
+  </div>
+</nav>
 
 <div id="content">{% block content %}{% endblock %}</div>
 

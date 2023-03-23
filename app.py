@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, url_for
 from flask_caching import Cache
 import requests
+
+import samples
 
 config = {
     "DEBUG": True,                  # some Flask specific configs
@@ -128,6 +130,30 @@ def canvas_url(source, manifest, canvas):
     raise ValueError("Unknown source")
 
 
+def get_text_lines(canvas):
+    if canvas is None:
+        return None
+    annotation_pages = canvas.get("annotations", None)
+    if annotation_pages is None or len(annotation_pages) == 0:
+        return None
+    # just use the first page for now and assume we need to load it
+    # assume just one kind of anno
+    try:
+        req = requests.get(annotation_pages[0]["id"])
+        annos = req.json()
+        strings = []
+        for anno in annos["items"]:
+            body = anno.get("body", None)
+            if body is not None and body.get("type", None) == "TextualBody":
+                strings.append(body.get("value", ""))
+
+        return strings
+    except:
+        return None
+
+    return None
+
+
 def get_page_model(source, manifest, canvas=None):
     page_model = {
         "source": source,
@@ -135,8 +161,10 @@ def get_page_model(source, manifest, canvas=None):
         "manifest": manifest,
         "total_canvases": len(manifest["items"]),
         "canvas": canvas,
+        "prev_canvas": None,
+        "next_canvas": None,
         "canvas_index": -1,
-        "manifest_url": manifest_url(source, manifest),
+        "text_lines": get_text_lines(canvas),
         # helpers:
         "canvas_url": canvas_url,
         "manifest_url": manifest_url,
@@ -149,13 +177,37 @@ def get_page_model(source, manifest, canvas=None):
         for idx, cvs in enumerate(manifest["items"]):
             if cvs["id"] == canvas["id"]:
                 page_model["canvas_index"] = idx
+                if idx > 0:
+                    page_model["prev_canvas"] = manifest["items"][idx - 1]
+                if idx < len(manifest["items"]):
+                    page_model["next_canvas"] = manifest["items"][idx + 1]
+                break
 
     return page_model
 
 
 @app.route('/')
 def index():
-    return render_template('index.html', label='The Exploded Viewer')
+    model = []
+    for manifest in samples.SAMPLES["items"]:
+        id = manifest["id"]
+        no_protocol = id.removeprefix("https://")
+        no_protocol = no_protocol.removeprefix("http://")
+        model_manifest = {
+            "original": id,
+            "label": get_single_string(manifest, "label"),
+            "raw": url_for("iiif_object", source=RAW, path=no_protocol)
+        }
+        if id.startswith("https://iiif.wellcomecollection.org/presentation/"):
+            model_manifest["internal"] = url_for("iiif_object", source=WELLCOME, path=id.split('/')[-1])
+        elif id.startswith("(fraser)"):
+            model_manifest["internal"] = model_manifest["raw"]
+        else:
+            model_manifest["internal"] = model_manifest["raw"]
+
+        model.append(model_manifest)
+
+    return render_template('index.html', label='The Exploded Viewer', model=model)
 
 
 def get_single_string(iiif, prop_name, fallback=None, lang=config["DEFAULT_LANGUAGE"]):

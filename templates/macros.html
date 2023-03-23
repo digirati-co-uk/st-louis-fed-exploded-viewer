@@ -24,7 +24,8 @@
 
 {% macro large_image(model, described_by_label) -%}
     {% set image = model.get_static_image(model.canvas) %}
-    <img src="{{ image.id }}"
+    <img class="img-fluid"
+         src="{{ image.id }}"
          width="{{ image.width }}" height="{{ image.height }}"
          aria-describedby="{{ described_by_label }}"
     />

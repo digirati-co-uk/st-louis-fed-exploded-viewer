@@ -9,11 +9,29 @@ SAMPLES = {
     },
     "items": [
         {
-            "id": "https://iiif.wellcomecollection.org/presentation/b19854699",
+            "id": "https://iiif.wellcomecollection.org/presentation/b21023608",
             "type": "Manifest",
             "label": {
                 "en": [
-                    "Documents for Chapter 10-12"
+                    "Electro-physiology and electro-therapeutics showing the best methods for the medical uses of electricity"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b30010160",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Rainer Maria Rilke"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b21530622",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "The frugal housewife; or, experienced cook"
                 ]
             }
         },
@@ -23,6 +41,33 @@ SAMPLES = {
             "label": {
                 "en": [
                     "Interior of an Alchemical Laboratory"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b29817456",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "How to be happy though human"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b19974760_1_0004",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Chemist and Druggist 15. September 1859"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b19974760_274_0067",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Chemist and Druggist December 2010 (issue 6778)"
                 ]
             }
         },
@@ -45,47 +90,11 @@ SAMPLES = {
             }
         },
         {
-            "id": "https://iiif.wellcomecollection.org/presentation/b18633419",
-            "type": "Manifest",
-            "label": {
-                "en": [
-                    "Scrapbook of programmes and concert arrangements of the RAMC band"
-                ]
-            }
-        },
-        {
             "id": "https://iiif.wellcomecollection.org/presentation/b19255366",
             "type": "Manifest",
             "label": {
                 "en": [
                     "Lowdham, Caleb (fl. 1665-1712), surgeon, Exeter"
-                ]
-            }
-        },
-        {
-            "id": "https://iiif.wellcomecollection.org/presentation/b20442324",
-            "type": "Manifest",
-            "label": {
-                "en": [
-                    "Sex efficiency through exercises : special physical culture for women"
-                ]
-            }
-        },
-        {
-            "id": "https://iiif.wellcomecollection.org/presentation/b19979186",
-            "type": "Manifest",
-            "label": {
-                "en": [
-                    "Travel - Maps and Guides"
-                ]
-            }
-        },
-        {
-            "id": "https://iiif.wellcomecollection.org/presentation/b28545187",
-            "type": "Manifest",
-            "label": {
-                "en": [
-                    "A purple head in anguish, with arms raised. Watercolour by M. Bishop, 1967."
                 ]
             }
         },
@@ -108,38 +117,11 @@ SAMPLES = {
             }
         },
         {
-            "id": "https://iiif.wellcomecollection.org/presentation/b19984960",
-            "type": "Manifest",
-            "label": {
-                "en": [
-                    "40th Anniversary of Double Helix - Installation of the Bronze Helix (2 folders)"
-                ]
-            }
-        },
-        {
             "id": "https://iiif.wellcomecollection.org/presentation/b20425272",
             "type": "Manifest",
             "label": {
                 "en": [
                     "The philosophy of beards : a lecture : physiological, artistic & historical"
-                ]
-            }
-        },
-        {
-            "id": "https://iiif.wellcomecollection.org/presentation/b18863231",
-            "type": "Manifest",
-            "label": {
-                "en": [
-                    "First World War photographs of military hospitals"
-                ]
-            }
-        },
-        {
-            "id": "https://iiif.wellcomecollection.org/presentation/b19691087",
-            "type": "Manifest",
-            "label": {
-                "en": [
-                    "The Queen's Roll: 6301-6550"
                 ]
             }
         },
@@ -153,29 +135,20 @@ SAMPLES = {
             }
         },
         {
-            "id": "https://iiif.wellcomecollection.org/presentation/b16698800",
-            "type": "Manifest",
-            "label": {
-                "en": [
-                    "A central circle with four penis-like extensions surrounded by numerous small circles and flower shapes in each corner"
-                ]
-            }
-        },
-        {
-            "id": "https://iiif.wellcomecollection.org/presentation/b19851777",
-            "type": "Manifest",
-            "label": {
-                "en": [
-                    "Chapter 10 references [photos] (3 of 3)"
-                ]
-            }
-        },
-        {
             "id": "https://iiif.wellcomecollection.org/presentation/b24875880",
             "type": "Manifest",
             "label": {
                 "en": [
                     "Merveilles du génie de l'homme : découvertes, inventions, récits, historiques, amusants et instructifs sur l'origine et l'état actuel des découvertes..."
+                ]
+            }
+        },
+        {
+            "id": "https://iiif.wellcomecollection.org/presentation/b20442324",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Sex efficiency through exercises : special physical culture for women"
                 ]
             }
         },
@@ -189,29 +162,11 @@ SAMPLES = {
             }
         },
         {
-            "id": "https://iiif.wellcomecollection.org/presentation/b19251051",
-            "type": "Manifest",
-            "label": {
-                "en": [
-                    "Scrapbook re the First World War and the Easter Rising in Dublin, including photographs of training dogs to track down wounded..."
-                ]
-            }
-        },
-        {
             "id": "https://iiif.wellcomecollection.org/presentation/b15657930",
             "type": "Manifest",
             "label": {
                 "en": [
                     "Japanese funeral customs: the cortège leaves the dead man's house for the temple. Watercolour, ca. 1880 (?)."
-                ]
-            }
-        },
-        {
-            "id": "https://iiif.wellcomecollection.org/presentation/b20046613",
-            "type": "Manifest",
-            "label": {
-                "en": [
-                    "Papers of M H F Wilkins: press cuttings relating to DNA research"
                 ]
             }
         }

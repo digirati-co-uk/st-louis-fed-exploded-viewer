@@ -179,7 +179,7 @@ def get_page_model(source, manifest, canvas=None):
                 page_model["canvas_index"] = idx
                 if idx > 0:
                     page_model["prev_canvas"] = manifest["items"][idx - 1]
-                if idx < len(manifest["items"]):
+                if idx+1 < len(manifest["items"]):
                     page_model["next_canvas"] = manifest["items"][idx + 1]
                 break
 

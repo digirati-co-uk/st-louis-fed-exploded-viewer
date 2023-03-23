@@ -109,7 +109,7 @@
            {% if model.next_canvas %}
                 class="btn btn-outline-primary"
                 href="{{ model.canvas_url(model.source, model.manifest, model.next_canvas) }}"
-           {% elif model.manifest %}
+           {% elif model.manifest and not model.canvas %}
                 class="btn btn-outline-primary"
                 href="{{ model.canvas_url(model.source, model.manifest, model.manifest["items"][0]) }}"
            {% else %}

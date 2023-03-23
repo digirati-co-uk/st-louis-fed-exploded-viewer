@@ -4,7 +4,7 @@ Demo site to experiment with server-side IIIF rendering and progressive enhancem
 
 https://st-louis-fed-exploded-viewer.azurewebsites.net/
 
-Pass 1:
+### Pass 1
 
  - No Javascript at all
  - Textual annotations displayed
@@ -18,15 +18,15 @@ In the first pass, it's tailored to Wellcome and Fraser manifests and probably w
 It understands the structure of Wellcome IIIF URLs and makes its own page URLs use their path elements.
 Use the "raw url" option to see what the manifest and canvas view URLs would look like for a non-optimised source.
 
-Optimised:
+#### Optimised
 
-Manifest: /wellcome/object/b21530622
-Canvas: /wellcome/canvas/b21530622/b21530622_0006.jp2
+ - Manifest: /wellcome/object/b21530622
+ - Canvas: /wellcome/canvas/b21530622/b21530622_0006.jp2
 
-Unoptimised (raw url):
+#### Unoptimised (raw url)
 
-Manifest: /exploded/object/iiif.wellcomecollection.org/presentation/b21530622
-Canvas: /exploded/canvas/iiif.wellcomecollection.org/presentation/b21530622?canvas=3
+ - Manifest: /exploded/object/iiif.wellcomecollection.org/presentation/b21530622
+ - Canvas: /exploded/canvas/iiif.wellcomecollection.org/presentation/b21530622?canvas=3
 
 An even longer url uses the canvas id rather than index.
  
@@ -34,7 +34,7 @@ Later, we can user Vault on the server to handle _any_ manifest, not just Wellco
 
 So far we are at Pass 1!
 
-Pass 2:
+### Pass 2 - design for visual and assistive technologies
 
 The visual design is pretty poor. So before any more progressive enhancement we need to improve it, both for visual browsers and for assistive technologies.
 
@@ -43,12 +43,12 @@ The visual design is pretty poor. So before any more progressive enhancement we 
  - Are the `aria-` attributes correct? What else do we need to have in the markup?
  - What should the pages offer to search engines? meta tags, etc.
  
-Pass 3, JavaScript:
+### Pass 3, JavaScript enhancement
   
  - Use [Canvas Panel](https://iiif-canvas-panel.netlify.app/)
  - Use Canvas Panel text features (overlay, copy and paste)
  
-Pass 4, partial SPA-fication:
+### Pass 4, partial SPA-fication:
 
  - With JS enabled, app doesn't make whole-page transitions. It updates the browser history but becomes more viewer-like in interaction, making partial page requests and/or using the IIIF Manifest directly.
  

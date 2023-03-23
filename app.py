@@ -104,7 +104,7 @@ def manifest_url(source, manifest):
         parts = manifest["id"].split("/")
         return f"/{FRASER}/object/{parts[-1]}"
     elif source == RAW:
-        return f"/{RAW}/object/{manifest['id']}"
+        return f"/{RAW}/object/{no_protocol(manifest['id'])}"
 
     raise ValueError("Unknown source")
 

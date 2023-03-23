@@ -122,10 +122,10 @@ def canvas_url(source, manifest, canvas):
         if config["INTEGER_CANVASES"]:
             for idx, cvs in enumerate(manifest["items"]):
                 if cvs["id"] == canvas["id"]:
-                    return f"/{RAW}/canvas/{manifest['id']}?canvas={idx}"
+                    return f"/{RAW}/canvas/{no_protocol(manifest['id'])}?canvas={idx}"
             raise ValueError(f"Can't find canvas {canvas['id']}")
         else:
-            return f"/{RAW}/canvas/{manifest['id']}?canvas={canvas['id']}"
+            return f"/{RAW}/canvas/{no_protocol(manifest['id'])}?canvas={canvas['id']}"
 
     raise ValueError("Unknown source")
 
@@ -186,17 +186,21 @@ def get_page_model(source, manifest, canvas=None):
     return page_model
 
 
+def no_protocol(old_url):
+    new_url = old_url.removeprefix("https://")
+    new_url = new_url.removeprefix("http://")
+    return new_url
+
+
 @app.route('/')
 def index():
     model = []
     for manifest in samples.SAMPLES["items"]:
         id = manifest["id"]
-        no_protocol = id.removeprefix("https://")
-        no_protocol = no_protocol.removeprefix("http://")
         model_manifest = {
             "original": id,
             "label": get_single_string(manifest, "label"),
-            "raw": url_for("iiif_object", source=RAW, path=no_protocol)
+            "raw": url_for("iiif_object", source=RAW, path=no_protocol(id))
         }
         if id.startswith("https://iiif.wellcomecollection.org/presentation/"):
             model_manifest["internal"] = url_for("iiif_object", source=WELLCOME, path=id.split('/')[-1])

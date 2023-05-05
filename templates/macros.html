@@ -1,10 +1,10 @@
-{% macro thumbnails(model) -%}
+{% macro thumbnails(model, helpers) -%}
     {% for cvs in model.manifest["items"] %}
-        {% set thumb = model.get_thumbnail(cvs) %}
+        {% set thumb = helpers.get_thumbnail(cvs) %}
         {% set thumb_label_id = "thumbLabel" ~ loop.index %}
-        {% set canvas_label = model.single_string(cvs, "label", "Canvas " ~ loop.index) %}
+        {% set canvas_label = helpers.single_string(cvs, "label", "Canvas " ~ loop.index) %}
         <div class="thumbnail">
-            <a href="{{ model.canvas_url(model.source, model.manifest, cvs) }}"
+            <a href="{{ helpers.canvas_url(model.source, model.manifest, cvs) }}"
                 aria-labelledby="{{ thumb_label_id }}"
                 {% if loop.index0 == model.canvas_index %}
                     aria-current="page"
@@ -22,9 +22,10 @@
 {%- endmacro %}
 
 
-{% macro large_image(model, described_by_label) -%}
-    {% set image = model.get_static_image(model.canvas) %}
+{% macro large_image(model, helpers, described_by_label) -%}
+    {% set image = helpers.get_static_image(model.canvas) %}
     <img class="img-fluid"
+         id="canvasImage"
          src="{{ image.id }}"
          width="{{ image.width }}" height="{{ image.height }}"
          aria-describedby="{{ described_by_label }}"
@@ -41,12 +42,12 @@
 {%- endmacro %}
 
 
-{% macro metadata(model) -%}
+{% macro metadata(model, helpers) -%}
     <div class="metadata-container">
         {% if model.canvas.metadata %}
             <dl>
                 {% for pair in model.canvas.metadata %}
-                    {{ metadata_pair(model, pair) }}
+                    {{ metadata_pair(pair, helpers) }}
                 {% endfor %}
             </dl>
             <hr/>
@@ -54,16 +55,16 @@
         {% endif %}
         {% for pair in model.manifest.metadata %}
             <dl>
-                {{ metadata_pair(model, pair) }}
+                {{ metadata_pair(pair, helpers) }}
             </dl>
         {% endfor %}
     </div>
 {%- endmacro %}
 
 
-{% macro metadata_pair(model, pair) -%}
+{% macro metadata_pair(pair, helpers) -%}
     <dt>
-        {% for string_value in model.strings(pair, "label") %}
+        {% for string_value in helpers.strings(pair, "label") %}
             {{ string_value | safe }}
             {% if not loop.last %}
                <br/>
@@ -71,7 +72,7 @@
         {% endfor %}
     </dt>
     <dd>
-        {% for string_value in model.strings(pair, "value") %}
+        {% for string_value in helpers.strings(pair, "value") %}
             {{ string_value | safe }}
             {% if not loop.last %}
                <br/>
@@ -80,14 +81,14 @@
     </dd>
 {%- endmacro %}
 
-{% macro navigator(model) -%}
+{% macro navigator(model, helpers) -%}
 
     <div class="btn-group" role="group" aria-label="Canvas Navigation">
 
         <a aria-label="Previous canvas"
            {% if model.prev_canvas %}
                 class="btn btn-outline-primary"
-                href="{{ model.canvas_url(model.source, model.manifest, model.prev_canvas) }}"
+                href="{{ helpers.canvas_url(model.source, model.manifest, model.prev_canvas) }}"
            {% else %}
                 class="btn btn-outline-primary disabled"
                 aria-disabled="true"
@@ -98,7 +99,7 @@
         <a aria-label="View all Canvases"
            {% if model.manifest %}
                 class="btn btn-outline-primary"
-                href="{{ model.manifest_url(model.source, model.manifest) }}"
+                href="{{ helpers.manifest_url(model.source, model.manifest) }}"
            {% else %}
                 class="btn btn-outline-primary disabled"
                 aria-disabled="true"
@@ -109,10 +110,10 @@
         <a aria-label="Next canvas"
            {% if model.next_canvas %}
                 class="btn btn-outline-primary"
-                href="{{ model.canvas_url(model.source, model.manifest, model.next_canvas) }}"
+                href="{{ helpers.canvas_url(model.source, model.manifest, model.next_canvas) }}"
            {% elif model.manifest and not model.canvas %}
                 class="btn btn-outline-primary"
-                href="{{ model.canvas_url(model.source, model.manifest, model.manifest["items"][0]) }}"
+                href="{{ helpers.canvas_url(model.source, model.manifest, model.manifest["items"][0]) }}"
            {% else %}
                 class="btn btn-outline-primary disabled"
                 aria-disabled="true"
@@ -121,6 +122,16 @@
             Next Canvas &gt;
         </a>
 
+    </div>
+
+    <div class="btn-group ms-3" role="group" aria-label="Toggles">
+        <a aria-label="Toggles" class="btn btn-outline-primary" href="/toggles">
+            {% if model.script_on %}
+                script on
+            {% else %}
+                script off
+            {%  endif %}
+        </a>
     </div>
 
 {%- endmacro %}

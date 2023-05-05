@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %}Toggles{% endblock %}
+
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+
+            <h2 class="mb-5">Toggles</h2>
+
+            <form method="post">
+
+                <div class="mb-3 form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="scriptOn" name="script_on" {% if model.script_on %} checked {% endif %}>
+                  <label class="form-check-label" for="scriptOn">Script on</label>
+                </div>
+
+                <p>When script on:</p>
+
+                <div class="mb-3 form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="showText" name="show_text" {% if model.show_text %} checked {% endif %}>
+                  <label class="form-check-label" for="showText">Show text anyway</label>
+                </div>
+
+                <div class="mb-3 form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="defaultCpText" name="default_cp_text" {% if model.default_cp_text %} checked {% endif %}>
+                  <label class="form-check-label" for="defaultCpText">Canvas Panel defaults to text mode</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

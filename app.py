@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, url_for
+import json
+
+from flask import Flask, render_template, request, url_for, make_response, jsonify
 from flask_caching import Cache
 import requests
 
@@ -21,6 +23,10 @@ RAW = 'exploded'
 app = Flask(__name__)
 app.config.from_mapping(config)
 cache = Cache(app)
+
+@app.route('/cptest')
+def cp_test():
+    return render_template('cp-test.html')
 
 
 @app.route('/iiif/<source>/<identifier>')
@@ -71,16 +77,16 @@ def iiif_canvas(source, path):
     if canvas is None:
         canvas = next((c for c in manifest["items"] if c["id"] == full_canvas_id), None)
 
-    return render_template('canvas.html', model=get_page_model(source, manifest, canvas))
+    return render_template('canvas.html', model=get_page_model(source, manifest, canvas), helpers=get_helpers())
 
 
 @app.route('/<source>/object/<path:path>')
 def iiif_object(source, path):
     json = load_iiif(source, path)
     if json["type"] == "Collection":
-        return render_template('collection.html', source=source, collection=json)
+        return render_template('collection.html', source=source, collection=json, helpers=get_helpers())
     else:
-        return render_template('manifest.html', model=get_page_model(source, json))
+        return render_template('manifest.html', model=get_page_model(source, json), helpers=get_helpers())
 
 
 def get_canvas_id(source, manifest_fragment, canvas_fragment):
@@ -154,6 +160,29 @@ def get_text_lines(canvas):
     return None
 
 
+# Expose utilities to template
+def get_helpers():
+    return {
+        "canvas_url": canvas_url,
+        "manifest_url": manifest_url,
+        "single_string": get_single_string,
+        "strings": get_strings,
+        "get_thumbnail": get_thumbnail,
+        "get_static_image": get_static_image,
+        "trim_model": trim_model
+    }
+
+
+def trim_model(model):
+    # remove the manifest from the model and replace with its id
+    # if the JS client wants the manifest it can ask for it
+    trimmed = model.copy()
+    if "manifest" in trimmed:
+        trimmed["manifest_id"] = model["manifest"]["id"]
+        del trimmed["manifest"]
+    return trimmed
+
+
 def get_page_model(source, manifest, canvas=None):
     page_model = {
         "source": source,
@@ -164,14 +193,7 @@ def get_page_model(source, manifest, canvas=None):
         "prev_canvas": None,
         "next_canvas": None,
         "canvas_index": -1,
-        "text_lines": get_text_lines(canvas),
-        # helpers:
-        "canvas_url": canvas_url,
-        "manifest_url": manifest_url,
-        "single_string": get_single_string,
-        "strings": get_strings,
-        "get_thumbnail": get_thumbnail,
-        "get_static_image": get_static_image
+        "text_lines": get_text_lines(canvas)
     }
     if canvas is not None:
         for idx, cvs in enumerate(manifest["items"]):
@@ -183,7 +205,7 @@ def get_page_model(source, manifest, canvas=None):
                     page_model["next_canvas"] = manifest["items"][idx + 1]
                 break
 
-    return page_model
+    return get_model() | page_model
 
 
 def no_protocol(old_url):
@@ -192,9 +214,18 @@ def no_protocol(old_url):
     return new_url
 
 
+def get_model():
+    return {
+        "script_on": bool(request.cookies.get("script_on", False)),
+        "show_text": bool(request.cookies.get("show_text", False)),
+        "default_cp_text": bool(request.cookies.get("default_cp_text", False))
+    }
+
+
 @app.route('/')
 def index():
-    model = []
+    model = get_model()
+    model["manifests"] = []
     for manifest in samples.SAMPLES["items"]:
         id = manifest["id"]
         model_manifest = {
@@ -209,9 +240,9 @@ def index():
         else:
             model_manifest["internal"] = model_manifest["raw"]
 
-        model.append(model_manifest)
+        model["manifests"].append(model_manifest)
 
-    return render_template('index.html', label='The Exploded Viewer', model=model)
+    return render_template('index.html', label='The Exploded Viewer', model=model, helpers=get_helpers())
 
 
 def get_single_string(iiif, prop_name, fallback=None, lang=config["DEFAULT_LANGUAGE"]):
@@ -295,6 +326,41 @@ def get_image_service(image):
         image_service = next((s for s in services if s.get("type", "").startswith("ImageService")), None)
         return image_service
     return None
+
+
+@app.route("/toggles", methods=['POST', 'GET'])
+def toggles():
+    if request.method == 'POST':
+        script_on = bool(request.form.get('script_on', False))
+        show_text = bool(request.form.get('show_text', False))
+        default_cp_text = bool(request.form.get('default_cp_text', False))
+    else:
+        script_on = bool(request.cookies.get("script_on"))
+        show_text = bool(request.cookies.get("show_text"))
+        default_cp_text = bool(request.cookies.get("default_cp_text"))
+
+    model = get_model()
+    model["script_on"] = script_on
+    model["show_text"] = show_text
+    model["default_cp_text"] = default_cp_text
+
+    resp = make_response(render_template("toggles.html", model=model))
+
+    if request.method == 'POST':
+        if script_on:
+            resp.set_cookie("script_on", str(script_on))
+        else:
+            resp.set_cookie("script_on", "False", expires=0)
+        if show_text:
+            resp.set_cookie("show_text", str(show_text))
+        else:
+            resp.set_cookie("show_text", "False", expires=0)
+        if default_cp_text:
+            resp.set_cookie("default_cp_text", str(default_cp_text))
+        else:
+            resp.set_cookie("default_cp_text", "False", expires=0)
+
+    return resp
 
 
 if __name__ == '__main__':

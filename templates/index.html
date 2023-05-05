@@ -5,7 +5,7 @@
 {% block content %}
 <h2>Some Manifests</h2>
     <ul>
-        {% for manifest in model %}
+        {% for manifest in model.manifests %}
             <li>
                 <a href="{{ manifest.original }}">source</a> |
                 <a href="{{ manifest.raw }}">raw url</a> |

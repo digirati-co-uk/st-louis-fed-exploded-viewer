@@ -10,17 +10,24 @@
                     {{ model.label }}<br/>
                     {{ model.canvas_index }}/{{ model.total_canvases }}
                 </h1>
+                {% if model.script_on %}
+                    <br/>
+                    <div class="mb-3 form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="toggleCpTextMode" {% if model.default_cp_text %} checked {% endif %}>
+                      <label class="form-check-label" for="toggleCpTextMode">Selectable text</label>
+                    </div>
+                {% endif %}
             </div>
         </div>
 
-        <div class="row">
+        <div class="row" id="canvasRow">
             {% set described_by_label = "canvasDescription" ~ model.canvas_index %}
-            {% set canvas_label = model.single_string(model.canvas, "label", none) ~ " (canvas " ~ (model.canvas_index + 1) ~ ")" %}
+            {% set canvas_label = helpers.single_string(model.canvas, "label", none) ~ " (canvas " ~ (model.canvas_index + 1) ~ ")" %}
             {% if model.text_lines is not none %}
-                <div class="col-md-auto">
-                    {{ macros.large_image(model, described_by_label) }}
+                <div class="col-md-auto" id="largeImageWithText">
+                    {{ macros.large_image(model, helpers, described_by_label) }}
                 </div>
-                <div class="col-md-auto">
+                <div class="col-md-auto" id="canvasText">
                     <div class="canvas-description" id="{{ described_by_label }}">
                         <h2>{{ canvas_label }}</h2>
                         <p><em>The image contains the following text:</em></p>
@@ -28,18 +35,18 @@
                     </div>
                 </div>
             {% else %}
-                <div class="col-md-auto">
-                    {{ macros.large_image(model, described_by_label) }}
+                <div class="col-md-auto" id="largeImageWithoutText">
+                    {{ macros.large_image(model, helpers, described_by_label) }}
                     <p id="{{ described_by_label }}">{{ canvas_label }}</p>
                 </div>
             {% endif %}
-            <div class="col-md-2">
+            <div class="col-md-2" id="thumbnails">
                 <nav class="thumbnail-container">
-                    {{ macros.thumbnails(model) }}
+                    {{ macros.thumbnails(model, helpers) }}
                 </nav>
             </div>
-            <div class="col-md-2">
-                {{ macros.metadata(model) }}
+            <div class="col-md-2" id="metadata">
+                {{ macros.metadata(model, helpers) }}
             </div>
         </div>
     </div>

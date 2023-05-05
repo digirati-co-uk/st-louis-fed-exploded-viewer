@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>CP Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@digirati/canvas-panel-web-components@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@iiif/vault-helpers@latest/dist/index.umd.js"></script>
+</head>
+<body>
+
+<h1>hello world</h1>
+
+
+<canvas-panel id="cp" text-enabled="true"></canvas-panel>
+
+<script>
+    const cp = document.getElementById("cp");
+    show();
+    async function show(){
+        await cp.vault.loadManifest("https://digirati-co-uk.github.io/wunder.json");
+        cp.setCanvas("https://digirati-co-uk.github.io/wunder/canvases/3");
+    }
+</script>
+</body>
+</html>

@@ -25,7 +25,34 @@
         .text-lines-container span{
             display: block;
         }
+
+        {% if model.script_on %}
+        canvas-panel {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          min-width: 0; /* Required for downsizing */
+
+          --atlas-container-flex: 1 1 0px;
+          --atlas-background: #9b6631;
+        }
+
+        .resize {
+          resize: both;
+          overflow: auto;
+          padding: 30px;
+          margin: 30px;
+          min-width: 0;
+          width: 100%;
+          display: flex;
+        }
+        {% endif %}
+
     </style>
+    {% if model.script_on %}
+        <script src="https://cdn.jsdelivr.net/npm/@digirati/canvas-panel-web-components@latest"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@iiif/vault-helpers@latest/dist/index.umd.js"></script>
+    {% endif %}
 </head>
 <body>
 
@@ -36,15 +63,23 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarCollapse">
-        {{ macros.navigator(model) }}
+        {{ macros.navigator(model, helpers) }}
     </div>
   </div>
 </nav>
 
 <div id="content">{% block content %}{% endblock %}</div>
 
+<!-- We'll include the bootstrap script even for script off, it's cosmetic for the demo -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
     crossorigin="anonymous"></script>
+
+{% if model.script_on %}
+    <script>
+        const model = {{ helpers.trim_model(model)|tojson(indent=4)}};
+    </script>
+    <script src="{{ url_for('static', filename='exploded.js') }}"></script>
+{% endif %}
 </body>
 </html>

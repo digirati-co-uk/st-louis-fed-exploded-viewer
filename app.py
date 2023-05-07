@@ -344,7 +344,7 @@ def toggles():
     model["show_text"] = show_text
     model["default_cp_text"] = default_cp_text
 
-    resp = make_response(render_template("toggles.html", model=model))
+    resp = make_response(render_template("toggles.html", model=model, helpers=get_helpers()))
 
     if request.method == 'POST':
         if script_on:

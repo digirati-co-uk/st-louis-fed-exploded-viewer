@@ -4,7 +4,7 @@
 
 {% block content %}
     <div class="container-fluid">
-        <div class="row">
+        <div class="row" id="titleRow">
             <div class="col">
                 <h1>
                     {{ model.label }}<br/>
@@ -20,7 +20,7 @@
             </div>
         </div>
 
-        <div class="row" id="canvasRow">
+        <div class="row flex" id="canvasRow">
             {% set described_by_label = "canvasDescription" ~ model.canvas_index %}
             {% set canvas_label = helpers.single_string(model.canvas, "label", none) ~ " (canvas " ~ (model.canvas_index + 1) ~ ")" %}
             {% if model.text_lines is not none %}

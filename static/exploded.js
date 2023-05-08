@@ -38,8 +38,8 @@ if(model.canvas){
     });
 
     cp = document.createElement("canvas-panel");
-    const initialWidth = (largeImageWithText || largeImageWithoutText).clientWidth;
-    const initialHeight = (largeImageWithText || largeImageWithoutText).clientHeight;
+    const initialWidth = (largeImageWithText || largeImageWithoutText).clientWidth - 8;
+    const initialHeight = (largeImageWithText || largeImageWithoutText).clientHeight - 4;
     cp.setAttribute("width", initialWidth); // canvasImage.naturalWidth);
     cp.setAttribute("height", initialHeight); //  canvasRow canvasImage.naturalHeight);
     cp.setAttribute("manifest-id", model.manifest_id);

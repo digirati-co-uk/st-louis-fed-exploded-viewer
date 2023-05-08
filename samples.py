@@ -9,6 +9,15 @@ SAMPLES = {
     },
     "items": [
         {
+            "id": "https://iiif.wellcomecollection.org/presentation/b2101310x",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Athothis : a satire on modern medicine / by Thomas C. Minor."
+                ]
+            }
+        },
+        {
             "id": "https://iiif.wellcomecollection.org/presentation/b21023608",
             "type": "Manifest",
             "label": {

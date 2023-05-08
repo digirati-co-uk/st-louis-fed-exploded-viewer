@@ -38,8 +38,10 @@ if(model.canvas){
     });
 
     cp = document.createElement("canvas-panel");
-    cp.setAttribute("width", canvasImage.naturalWidth);
-    cp.setAttribute("height", canvasImage.naturalHeight);
+    const initialWidth = (largeImageWithText || largeImageWithoutText).clientWidth;
+    const initialHeight = (largeImageWithText || largeImageWithoutText).clientHeight;
+    cp.setAttribute("width", initialWidth); // canvasImage.naturalWidth);
+    cp.setAttribute("height", initialHeight); //  canvasRow canvasImage.naturalHeight);
     cp.setAttribute("manifest-id", model.manifest_id);
     cp.setAttribute("canvas-id", model.canvas.id);
     cp.setAttribute("text-enabled", "true");
@@ -73,18 +75,25 @@ function toggleCanvasPanel(){
 
 // I should be able to do this purely with layout!
 function resize(){
+    console.log("resizing");
     const height = document.getElementsByTagName("html")[0].clientHeight;
     const navHeight = document.getElementById("topNav").clientHeight;
     const titleHeight = document.getElementById("titleRow").clientHeight;
-    const padding = 20;
+    const padding = 30;
 
     canvasRow.style.height = (height - (navHeight + titleHeight + padding)) + "px";
+    if(cp){
+        // cp.setAttribute("height", canvasRow.style.height - 2);
+    }
 }
 
 function debounce(func, timeout = 100){
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => { func.apply(this, args); }, timeout);
-  };
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
 }
+
+const bounceResize = debounce(() => resize());
+window.addEventListener("resize", bounceResize);

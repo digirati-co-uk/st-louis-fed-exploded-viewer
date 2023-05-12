@@ -9,7 +9,7 @@
 
             <h2 class="mb-5">Toggles</h2>
 
-            <form method="post">
+            <form method="post" id="togglesForm">
 
                 <div class="mb-3 form-check form-switch">
                   <input class="form-check-input" type="checkbox" id="scriptOn" name="script_on" {% if model.script_on %} checked {% endif %}>
@@ -28,10 +28,18 @@
                   <label class="form-check-label" for="defaultCpText">Canvas Panel defaults to text mode</label>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Save</button>
+                <button id="submitButton" type="submit" class="btn btn-primary">Save</button>
             </form>
 
             </div>
         </div>
     </div>
+
+    <script>
+        document.getElementById("submitButton").style.display = "none";
+        const togglesForm = document.getElementById("togglesForm");
+        document.querySelectorAll("input[type='checkbox']").forEach(cb => cb.addEventListener("change", () => {
+            togglesForm.submit();
+        }));
+    </script>
 {% endblock %}

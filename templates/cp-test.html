@@ -18,10 +18,12 @@
 
 <script>
     const cp = document.getElementById("cp");
+    cp.setAttribute("text-enabled", "true");
     show();
     async function show(){
         await cp.vault.loadManifest("https://digirati-co-uk.github.io/wunder.json");
         cp.setCanvas("https://digirati-co-uk.github.io/wunder/canvases/3");
+        cp.enableTextSelection();
     }
 </script>
 </body>

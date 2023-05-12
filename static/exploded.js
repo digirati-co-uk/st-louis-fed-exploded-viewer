@@ -1,13 +1,16 @@
 let cp;
+let cpContainer;
+let canvasRow;
 
 if(model.canvas){
     const largeImageWithText = document.getElementById("largeImageWithText");
     const canvasText = document.getElementById("canvasText");
     const largeImageWithoutText = document.getElementById("largeImageWithoutText");
+    cpContainer = largeImageWithText || largeImageWithoutText;
     const metadata = document.getElementById("metadata");
     const thumbnails = document.getElementById("thumbnails");
     const canvasImage = document.getElementById("canvasImage");
-    const canvasRow = document.getElementById("canvasRow");
+    canvasRow = document.getElementById("canvasRow");
 
     if(thumbnails){
         thumbnails.style.overflowY = "scroll";
@@ -38,21 +41,16 @@ if(model.canvas){
     });
 
     cp = document.createElement("canvas-panel");
-    const initialWidth = (largeImageWithText || largeImageWithoutText).clientWidth - 8;
-    const initialHeight = (largeImageWithText || largeImageWithoutText).clientHeight - 4;
-    cp.setAttribute("width", initialWidth); // canvasImage.naturalWidth);
-    cp.setAttribute("height", initialHeight); //  canvasRow canvasImage.naturalHeight);
+    cp.setAttribute("width", `${cpContainer.clientWidth - 8}`);
+    cp.setAttribute("height", `${cpContainer.clientHeight - 4}`);
     cp.setAttribute("manifest-id", model.manifest_id);
     cp.setAttribute("canvas-id", model.canvas.id);
-    cp.setAttribute("text-enabled", "true");
-
-    if(largeImageWithText && canvasText){
-        largeImageWithText.appendChild(cp);
+    cpContainer.appendChild(cp);
+    canvasImage.remove();
+    if(canvasText){
+        cp.setAttribute("text-enabled", "true");
         toggleCanvasPanel();
-        canvasImage.remove();
-        if(model.show_text){
-
-        } else {
+        if(!model.show_text){
             canvasText.remove();
             largeImageWithText.classList.remove("col-md-auto");
             largeImageWithText.classList.add("col-md-6");
@@ -62,7 +60,6 @@ if(model.canvas){
             metadata.classList.add("col-md-3");
         }
     }
-
 }
 
 function toggleCanvasPanel(){
@@ -73,18 +70,14 @@ function toggleCanvasPanel(){
     }
 }
 
-// I should be able to do this purely with layout!
+// I should be able to do this purely with layout! But it's only flexing horizontally
 function resize(){
     console.log("resizing");
     const height = document.getElementsByTagName("html")[0].clientHeight;
     const navHeight = document.getElementById("topNav").clientHeight;
     const titleHeight = document.getElementById("titleRow").clientHeight;
     const padding = 30;
-
     canvasRow.style.height = (height - (navHeight + titleHeight + padding)) + "px";
-    if(cp){
-        // cp.setAttribute("height", canvasRow.style.height - 2);
-    }
 }
 
 function debounce(func, timeout = 100){

@@ -24,6 +24,7 @@ app = Flask(__name__)
 app.config.from_mapping(config)
 cache = Cache(app)
 
+
 @app.route('/cptest')
 def cp_test():
     return render_template('cp-test.html')
@@ -50,10 +51,17 @@ def load_iiif(source, identifier):
 
 @app.route('/<source>/canvas/<path:path>')
 def iiif_canvas(source, path):
+    return render_canvas_template(path, source, "canvas")
 
+
+@app.route('/<source>/canvasv/<path:path>')
+def iiif_canvas_v(source, path):
+    return render_canvas_template(path, source, "canvasv")
+
+
+def render_canvas_template(path, source, template):
     full_canvas_id = None
     canvas = None
-
     if source == WELLCOME:
         parts = path.split("/")
         manifest = load_iiif(WELLCOME, parts[0])
@@ -73,11 +81,12 @@ def iiif_canvas(source, path):
             full_canvas_id = canvas_q
     else:
         raise ValueError("Unknown IIIF source")
-
     if canvas is None:
         canvas = next((c for c in manifest["items"] if c["id"] == full_canvas_id), None)
-
-    return render_template('canvas.html', model=get_page_model(source, manifest, canvas), helpers=get_helpers())
+    rendered = render_template(f"{template}.html",
+                               model=get_page_model(source, manifest, canvas),
+                               helpers=get_helpers(template))
+    return rendered
 
 
 @app.route('/<source>/object/<path:path>')
@@ -116,22 +125,22 @@ def manifest_url(source, manifest):
 
 
 # To be called by the template (instead of url_for)
-def canvas_url(source, manifest, canvas):
+def canvas_url(source, manifest, canvas, canvas_template="canvas"):
     if source == WELLCOME:
         parts = canvas["id"].split("/")
-        return f"/{WELLCOME}/canvas/{parts[-3]}/{parts[-1]}"
+        return f"/{WELLCOME}/{canvas_template}/{parts[-3]}/{parts[-1]}"
     elif source == FRASER:
         # tbc, assume same for the moment
         parts = canvas["id"].split("/")
-        return f"/{FRASER}/canvas/{parts[-3]}/{parts[-1]}"
+        return f"/{FRASER}/{canvas_template}/{parts[-3]}/{parts[-1]}"
     elif source == RAW:
         if config["INTEGER_CANVASES"]:
             for idx, cvs in enumerate(manifest["items"]):
                 if cvs["id"] == canvas["id"]:
-                    return f"/{RAW}/canvas/{no_protocol(manifest['id'])}?canvas={idx}"
+                    return f"/{RAW}/{canvas_template}/{no_protocol(manifest['id'])}?canvas={idx}"
             raise ValueError(f"Can't find canvas {canvas['id']}")
         else:
-            return f"/{RAW}/canvas/{no_protocol(manifest['id'])}?canvas={canvas['id']}"
+            return f"/{RAW}/{canvas_template}/{no_protocol(manifest['id'])}?canvas={canvas['id']}"
 
     raise ValueError("Unknown source")
 
@@ -161,8 +170,9 @@ def get_text_lines(canvas):
 
 
 # Expose utilities to template
-def get_helpers():
+def get_helpers(canvas_template="canvas"):
     return {
+        "canvas_template": canvas_template,
         "canvas_url": canvas_url,
         "manifest_url": manifest_url,
         "single_string": get_single_string,

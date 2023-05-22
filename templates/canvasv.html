@@ -1,0 +1,123 @@
+{% import 'macros.html' as macros %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Image {{ model.canvas_index }}/{{ model.total_canvases }} of {{ model.label }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
+          crossorigin="anonymous">
+    <style>
+        h1 {
+            font-size: 1.3em;
+        }
+
+        .thumbnail {
+            display: inline-block;
+            height: 5em;
+            width: 5em;
+        }
+
+        .thumbnail .active img {
+            border: 2px solid blue;
+        }
+
+        /* Set up the grid container */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 99vh;
+        }
+
+        /* Style the left column */
+        .scroll-images {
+            overflow: auto;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 50%;
+            background-color: #f2f2f2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Style the right column */
+        .right-column {
+            overflow: auto;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            right: 0;
+            background-color: #eaeaea;
+        }
+
+        .image-container {
+            max-width: 100%;
+            max-height: 100%;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .image-container a img {
+            border:2px solid blue;
+        }
+
+        .image-container img {
+            /*
+            max-width: 100%;
+            max-height: 100%;
+            */
+        }
+
+    </style>
+</head>
+<body>
+<div class="grid-container">
+    <div class="scroll-images" id="scrollImages">
+        {{ macros.large_image_with_neighbours(model, helpers, described_by_label) }}
+    </div>
+    <div class="right-column">
+        {{ macros.navigator(model, helpers) }}
+
+        <h1>{{ model.label }}</h1>
+        <p class="page-index">{{ model.canvas_index }}/{{ model.total_canvases }}</p>
+
+        <nav class="thumbnail-container">
+            {{ macros.thumbnails(model, helpers) }}
+        </nav>
+
+        <div id="metadata">
+            {{ macros.metadata(model, helpers) }}
+        </div>
+
+        <div class="canvas-description" id="{{ described_by_label }}">
+            <h2>{{ canvas_label }}</h2>
+            {% if model.text_lines is not none %}
+                <p><em>The image contains the following text:</em></p>
+                {{ macros.text_lines(model) }}
+            {% endif %}
+        </div>
+    </div>
+    {% if model.prev_canvas %}
+        <!-- There is no way to do this without JavaScript! -->
+        {% set prev_image = helpers.get_static_image(model.prev_canvas) %}
+        <script>
+            document.getElementById("scrollImages").scrollTop = {{ prev_image.height - 30 }};
+        </script>
+    {% endif %}
+</div>
+
+
+<!-- We'll include the bootstrap script even for script off, it's cosmetic for the demo -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
+</body>
+</html>

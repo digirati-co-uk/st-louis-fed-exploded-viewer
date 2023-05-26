@@ -12,7 +12,7 @@ config = {
     "CACHE_DEFAULT_TIMEOUT": 10,    # seconds
     "DEFAULT_LANGUAGE": "en",
     "LARGE_IMAGE_SIZE": 1000,
-    "MIN_THUMB_SIZE": 200,
+    "MIN_THUMB_SIZE": 0,
     "INTEGER_CANVASES": True        # Only for RAW manifests
 }
 
@@ -84,7 +84,7 @@ def render_canvas_template(path, source, template):
     if canvas is None:
         canvas = next((c for c in manifest["items"] if c["id"] == full_canvas_id), None)
     rendered = render_template(f"{template}.html",
-                               model=get_page_model(source, manifest, canvas),
+                               model=get_page_model(source, manifest, canvas, template),
                                helpers=get_helpers(template))
     return rendered
 
@@ -188,32 +188,34 @@ def trim_model(model):
     # if the JS client wants the manifest it can ask for it
     trimmed = model.copy()
     if "manifest" in trimmed:
-        trimmed["manifest_id"] = model["manifest"]["id"]
         del trimmed["manifest"]
     return trimmed
 
 
-def get_page_model(source, manifest, canvas=None):
+def get_page_model(source, manifest, canvas=None, canvas_template="canvas"):
     page_model = {
         "source": source,
         "label": get_single_string(manifest, 'label'),
         "manifest": manifest,
+        "manifest_id": manifest["id"],
         "total_canvases": len(manifest["items"]),
         "canvas": canvas,
         "prev_canvas": None,
         "next_canvas": None,
         "canvas_index": -1,
-        "text_lines": get_text_lines(canvas)
+        "text_lines": get_text_lines(canvas),
+        "canvas_url_list": []
     }
     if canvas is not None:
         for idx, cvs in enumerate(manifest["items"]):
+            page_model["canvas_url_list"].append(canvas_url(source, manifest, cvs, canvas_template))
             if cvs["id"] == canvas["id"]:
                 page_model["canvas_index"] = idx
+                page_model["static_image"] = get_static_image(cvs)
                 if idx > 0:
                     page_model["prev_canvas"] = manifest["items"][idx - 1]
                 if idx+1 < len(manifest["items"]):
                     page_model["next_canvas"] = manifest["items"][idx + 1]
-                break
 
     return get_model() | page_model
 
@@ -315,27 +317,40 @@ def get_sized_image(image, preferred_size):
                 if useful_size is None or useful_size["width"] > size["width"]:
                     useful_size = size
     if useful_size is not None:
+        img_svc_id = image_service.get("@id", None) or image_service.get("id", None)
         return {
-            "id": f'{image_service["id"]}/full/{useful_size["width"]},{useful_size["height"]}/0/default.jpg',
+            "id": f'{img_svc_id}/full/{useful_size["width"]},{useful_size["height"]}/0/default.jpg',
             "width": useful_size["width"],
             "height": useful_size["height"]
         }
     else:
+        return {
+            "id": image["id"],
+            "width": image.get("width", None),
+            "height": image.get("height", None),
+        }
         # TODO we can optimise this further for smaller sizes.
         # Needs to work for level < 1: no !w,h unless profile supports it
-        return {
-            "id": f'{image_service["id"]}/full/!{preferred_size},{preferred_size}/0/default.jpg',
-            "width": None,
-            "height": None
-        }
+        # return {
+        #     "id": f'{image_service["id"]}/full/!{preferred_size},{preferred_size}/0/default.jpg',
+        #     "width": None,
+        #     "height": None
+        # }
 
 
 def get_image_service(image):
     if image is not None:
         services = image.get("service", [])
-        image_service = next((s for s in services if s.get("type", "").startswith("ImageService")), None)
+        image_service = next((s for s in services if has_image_service_type(s)), None)
         return image_service
     return None
+
+
+def has_image_service_type(service):
+    svc_type = service.get("@type", None) or service.get("type", None)
+    if svc_type is None:
+        return False
+    return svc_type.startswith("ImageService")
 
 
 @app.route("/toggles", methods=['POST', 'GET'])

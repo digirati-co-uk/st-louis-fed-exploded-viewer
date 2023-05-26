@@ -33,18 +33,22 @@
     />
 {%- endmacro %}
 
-{% macro large_image_with_neighbours(model, helpers, described_by_label) -%}
+{% macro large_image_with_neighbours(model, helpers, described_by_label, make_links) -%}
     {% if model.prev_canvas %}
         {% set prev_image = helpers.get_static_image(model.prev_canvas) %}
         <div class="image-container">
-        <a href="{{ helpers.canvas_url(model.source, model.manifest, model.prev_canvas, helpers.canvas_template) }}">
+        {% if make_links %}<a href="{{ helpers.canvas_url(model.source, model.manifest, model.prev_canvas, helpers.canvas_template) }}">{% endif %}
         <img class="img-prev"
+             id="canvasImagePrevious"
              src="{{ prev_image.id }}"
              width="{{ prev_image.width }}" height="{{ prev_image.height }}"
-             alt="link to previous page"
-             title="Go to previous page"
+             {% if make_links %}
+                 alt="link to previous page"
+                 title="Go to previous page"
+             {% endif %}
              style="width: {{ prev_image.width }}px; height: {{ prev_image.height }}px"
-        /></a>
+             data-canvas-id="{{ model.prev_canvas.id }}"
+        />{% if make_links %}</a>{% endif %}
         </div>
     {% endif %}
     {% set image = helpers.get_static_image(model.canvas) %}
@@ -55,19 +59,24 @@
          width="{{ image.width }}" height="{{ image.height }}"
          aria-describedby="{{ described_by_label }}"
          style="width: {{ image.width }}px; height: {{ image.height }}px"
+         data-canvas-id="{{ model.canvas.id }}"
     />
     </div>
     {% if model.next_canvas %}
         {% set next_image = helpers.get_static_image(model.next_canvas) %}
         <div class="image-container">
-        <a href="{{ helpers.canvas_url(model.source, model.manifest, model.next_canvas, helpers.canvas_template) }}">
+        {% if make_links %}<a href="{{ helpers.canvas_url(model.source, model.manifest, model.next_canvas, helpers.canvas_template) }}">{% endif %}
         <img class="img-next"
+             id="canvasImageNext"
              src="{{ next_image.id }}"
              width="{{ next_image.width }}" height="{{ next_image.height }}"
-             alt="link to next page"
-             title="Go to next page"
+             {% if make_links %}
+                alt="link to next page"
+                title="Go to next page"
+             {% endif %}
              style="width: {{ next_image.width }}px; height: {{ next_image.height }}px"
-        /></a>
+             data-canvas-id="{{ model.next_canvas.id }}"
+        />{% if make_links %}</a>{% endif %}
         </div>
     {% endif %}
 {%- endmacro %}

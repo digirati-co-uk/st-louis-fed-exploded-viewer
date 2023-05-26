@@ -81,7 +81,7 @@
 <body>
 <div class="grid-container">
     <div class="scroll-images" id="scrollImages">
-        {{ macros.large_image_with_neighbours(model, helpers, described_by_label) }}
+        {{ macros.large_image_with_neighbours(model, helpers, described_by_label, not model.script_on) }}
     </div>
     <div class="right-column">
         {{ macros.navigator(model, helpers) }}
@@ -89,7 +89,7 @@
         <h1>{{ model.label }}</h1>
         <p class="page-index">{{ model.canvas_index }}/{{ model.total_canvases }}</p>
 
-        <nav class="thumbnail-container">
+        <nav class="thumbnail-container" id="thumbContainer">
             {{ macros.thumbnails(model, helpers) }}
         </nav>
 
@@ -119,5 +119,131 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
         crossorigin="anonymous"></script>
+
+
+{% if model.script_on %}
+    <script>
+        const model = {{ helpers.trim_model(model)|tojson(indent=4)}};
+        const scrollImages = document.getElementById("scrollImages");
+        const thumbContainer = document.getElementById("thumbContainer");
+        const thumbDivs = thumbContainer.children;
+
+        fetch(model.manifest_id).then(res => res.json()).then(manifest => {
+
+            const prevCanvasImg = document.getElementById("canvasImagePrevious");
+            const initialCanvasImg = document.getElementById("canvasImage");
+            const nextCanvasImg = document.getElementById("canvasImageNext");
+            for (let cvsIdx = 0; cvsIdx < manifest.items.length; cvsIdx++) {
+                const canvas = manifest.items[cvsIdx];
+                let imgContainer;
+                let imgElement;
+                if(cvsIdx == model.canvas_index - 1){
+                    imgElement = prevCanvasImg;
+                } else if(cvsIdx == model.canvas_index){
+                    imgElement = initialCanvasImg;
+                } else if(cvsIdx == model.canvas_index + 1) {
+                    imgElement = nextCanvasImg;
+                } else {
+                    imgElement = makeEmptyImage(canvas);
+                    // use the thumbnail as src initially.
+                    imgElement.src = thumbDivs[cvsIdx].firstElementChild.firstElementChild.src;
+                    imgContainer = document.createElement("div");
+                    imgContainer.setAttribute("class", "image-container");
+                    imgContainer.appendChild(imgElement);
+                }
+                imgElement.setAttribute("data-path", model.canvas_url_list[cvsIdx]);
+                imgElement.setAttribute("title", getLabel(canvas.label));
+
+                if(cvsIdx < model.canvas_index - 1){
+                    scrollImages.insertBefore(imgContainer, prevCanvasImg.parentElement);
+                } else if(cvsIdx > model.canvas_index + 1){
+                    scrollImages.appendChild(imgContainer);
+                }
+            }
+
+            initialCanvasImg.scrollIntoView({ block: "center" });
+
+            // scrollend event is not yet widely supported
+            scrollImages.addEventListener("scroll", () => {
+              clearTimeout(window.scrollEndTimer)
+              window.scrollEndTimer = setTimeout(setImageSources, 100)
+            });
+        });
+
+        function setImageSources(){
+            console.log("setImageSources");
+            let haveSeenVisibleImages = false;
+            const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+            for(const imgContainer of scrollImages.children) {
+                const bcr = imgContainer.getBoundingClientRect();
+                if ((bcr.top >= 0 || bcr.bottom >= 0) && (bcr.bottom <= (viewHeight) || bcr.top <= (viewHeight))){
+                    console.log(bcr);
+                    const image = imgContainer.firstElementChild;
+                    const dataSrc = image.getAttribute("data-src");
+                    if(dataSrc){
+                        console.log("Setting source " + dataSrc);
+                        image.removeAttribute("data-src");
+                        image.setAttribute("src", dataSrc);
+                    }
+                    haveSeenVisibleImages = true;
+                } else {
+                    if(haveSeenVisibleImages){
+                        break;
+                    }
+                }
+            }
+        }
+
+        function getLabel(langMap){
+            if(langMap){
+                const key = Object.keys(langMap)[0];
+                return langMap[key][0];
+            }
+            return null;
+        }
+
+        function makeEmptyImage(canvas){
+            const paintingAnnos = canvas["items"][0]["items"];
+            const imageAnno = paintingAnnos.find(anno => anno["body"]["type"] == "Image");
+            const sizedImage = getSizedImage(imageAnno["body"], 1000);
+            const img = document.createElement("img");
+            img.setAttribute("width", sizedImage.width);
+            img.setAttribute("height", sizedImage.height);
+            img.setAttribute("data-src", sizedImage.id);
+            img.setAttribute("title", getLabel(canvas.label));
+            return img;
+        }
+
+
+        function getSizedImage(image, preferred_size)
+        {
+            const imgService = image.service.find(svc => (svc.type || svc["@type"]).startsWith("ImageService"));
+            let usefulSize = null;
+            if(!imgService.hasOwnProperty("sizes")){
+                return {
+                    "id": image.id,
+                    "width": image.width,
+                    "height": image.height
+                }
+            }
+            for(const size of imgService.sizes){
+                if(size.width >= preferred_size || size.height >= preferred_size){
+                    if(usefulSize == null || usefulSize.width > size.width){
+                        usefulSize = size;
+                    }
+                }
+            }
+            const svc_id = imgService["@id"] || imgService.id;
+            return {
+                "id": `${svc_id.id}/full/${usefulSize.width},${usefulSize.height}/0/default.jpg`,
+                "width": usefulSize.width,
+                "height": usefulSize.height
+            }
+        }
+
+
+
+    </script>
+{% endif %}
 </body>
 </html>

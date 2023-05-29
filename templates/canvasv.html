@@ -40,7 +40,7 @@
             top: 0;
             bottom: 0;
             left: 0;
-            right: 50%;
+            right: 30%;
             background-color: #f2f2f2;
             display: flex;
             flex-direction: column;
@@ -53,7 +53,7 @@
             position: fixed;
             top: 0;
             bottom: 0;
-            left: 50%;
+            left: 70%;
             right: 0;
             background-color: #eaeaea;
         }
@@ -88,6 +88,8 @@
 
         <h1>{{ model.label }}</h1>
         <p class="page-index">{{ model.canvas_index }}/{{ model.total_canvases }}</p>
+
+        <p><a id="canvasModeLink" href="{{ helpers.canvas_url(model.source, model.manifest, model.canvas, "canvas") }}">(debug: view other mode)</a></p>
 
         <nav class="thumbnail-container" id="thumbContainer">
             {{ macros.thumbnails(model, helpers) }}
@@ -127,9 +129,11 @@
         const scrollImages = document.getElementById("scrollImages");
         const thumbContainer = document.getElementById("thumbContainer");
         const thumbDivs = thumbContainer.children;
+        let loadedManifest = null;
 
         fetch(model.manifest_id).then(res => res.json()).then(manifest => {
 
+            loadedManifest = manifest;
             const prevCanvasImg = document.getElementById("canvasImagePrevious");
             const initialCanvasImg = document.getElementById("canvasImage");
             const nextCanvasImg = document.getElementById("canvasImageNext");
@@ -152,6 +156,8 @@
                     imgContainer.appendChild(imgElement);
                 }
                 imgElement.setAttribute("data-path", model.canvas_url_list[cvsIdx]);
+                thumbDivs[cvsIdx].firstElementChild.setAttribute("data-index", cvsIdx.toString());
+                imgElement.setAttribute("data-index", cvsIdx.toString());
                 imgElement.setAttribute("title", getLabel(canvas.label));
 
                 if(cvsIdx < model.canvas_index - 1){
@@ -166,19 +172,66 @@
             // scrollend event is not yet widely supported
             scrollImages.addEventListener("scroll", () => {
               clearTimeout(window.scrollEndTimer)
-              window.scrollEndTimer = setTimeout(setImageSources, 100)
+              window.scrollEndTimer = setTimeout(readingPanelScroll, 100)
             });
+
+            document.querySelectorAll(".thumbnail a").forEach(thumbnailAnchor => {
+                thumbnailAnchor.addEventListener('click', event => {
+                    event.preventDefault();
+                    const anchor = event.target.parentElement;
+                    const index = parseInt(anchor.getAttribute("data-index"));
+                    const selectedImage = document.querySelector(`#scrollImages img[data-index='${index}']`);
+                    selectedImage.scrollIntoView({ block: "center" });
+                    history.pushState(null, "", model.canvas_url_list[index]);
+                })
+            });
+
+
         });
 
-        function setImageSources(){
-            console.log("setImageSources");
-            let haveSeenVisibleImages = false;
+        function getBoundingClientRectInViewport(element){
             const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+            const bcr = element.getBoundingClientRect();
+            if ((bcr.top >= 0 || bcr.bottom >= 0) && (bcr.bottom <= (viewHeight) || bcr.top <= (viewHeight))) {
+                return bcr;
+            }
+            return null;
+        }
+
+        function readingPanelScroll(){
+            console.log("readingPanelScroll");
+            let haveSeenVisibleImages = false;
+            let significantImage = null;
             for(const imgContainer of scrollImages.children) {
-                const bcr = imgContainer.getBoundingClientRect();
-                if ((bcr.top >= 0 || bcr.bottom >= 0) && (bcr.bottom <= (viewHeight) || bcr.top <= (viewHeight))){
-                    console.log(bcr);
+                const bcr = getBoundingClientRectInViewport(imgContainer);
+                if (bcr){
+                    // This image is in the viewport
                     const image = imgContainer.firstElementChild;
+                    if(bcr.top >= 0 && significantImage == null){
+                        image.classList.add("img-current");
+                        significantImage = image;
+                        const path = image.getAttribute("data-path");
+                        history.replaceState(null, "", path);
+                        const idx = parseInt(image.getAttribute("data-index"));
+                        let requiredThumbnail = null;
+                        for(let thumbIdx = 0; thumbIdx < thumbDivs.length; thumbIdx++){
+                            const thumbnailAnchor = thumbDivs[thumbIdx].firstElementChild;
+                            if(thumbIdx == idx){
+                                thumbnailAnchor.classList.add("active");
+                                thumbnailAnchor.setAttribute("aria-current", "page");
+                                requiredThumbnail = thumbDivs[thumbIdx];
+                            } else {
+                                thumbnailAnchor.classList.remove("active");
+                                thumbnailAnchor.removeAttribute("aria-current");
+                            }
+                        }
+                        const thumbBcr = getBoundingClientRectInViewport(requiredThumbnail);
+                        if(!thumbBcr){
+                            requiredThumbnail.scrollIntoView({ block: "center" });
+                        }
+                    } else {
+                        image.classList.remove("img-current");
+                    }
                     const dataSrc = image.getAttribute("data-src");
                     if(dataSrc){
                         console.log("Setting source " + dataSrc);

@@ -170,7 +170,7 @@ def get_text_lines(canvas):
 
 
 # Expose utilities to template
-def get_helpers(canvas_template="canvas"):
+def get_helpers(canvas_template="canvasv"):
     return {
         "canvas_template": canvas_template,
         "canvas_url": canvas_url,
@@ -192,7 +192,7 @@ def trim_model(model):
     return trimmed
 
 
-def get_page_model(source, manifest, canvas=None, canvas_template="canvas"):
+def get_page_model(source, manifest, canvas=None, canvas_template="canvasv"):
     page_model = {
         "source": source,
         "label": get_single_string(manifest, 'label'),
@@ -228,9 +228,9 @@ def no_protocol(old_url):
 
 def get_model():
     return {
-        "script_on": bool(request.cookies.get("script_on", False)),
-        "show_text": bool(request.cookies.get("show_text", False)),
-        "default_cp_text": bool(request.cookies.get("default_cp_text", False))
+        "script_on": bool(request.cookies.get("script_on", True)),
+        "show_text": bool(request.cookies.get("show_text", True)),
+        "default_cp_text": bool(request.cookies.get("default_cp_text", True))
     }
 
 

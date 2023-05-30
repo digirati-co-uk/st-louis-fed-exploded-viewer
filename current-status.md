@@ -17,7 +17,7 @@ Progressive enhancement added Canvas Panel to give us text overlay and deep zoom
 In the previous call with St Louis we discussed the fact that the majority of their content is images of printed text. Current IIIF viewers like Mirador and UV are obviously _readable_ (you can see the text) and even simulate some aspects of the layout (they understand page opening and present facing pages if correctly described in the published IIIF). But they are not optimised for _reading on the web_ - they lack the affordances of a PDF.
 
 We spent some time looking at Wellcome Collection - where the majority of items are also printed text. Here, the work page viewer presents the pages as a vertical scroll, like a PDF, with deep zoom available as a separate interaction per-image.
-This is more like the reading experience of a PDF. While full text search is available, and will highlight results on the image surface, you can't select text fromt he image surface.
+This is more like the reading experience of a PDF. While full text search is available, and will highlight results on the image surface, you can't select text from the image surface.
 
 What can we do to make the exploded viewer more PDF-like?
 
@@ -27,9 +27,9 @@ https://st-louis-fed-exploded-viewer.azurewebsites.net/toggles
 
 Then view a Manifest. 
 
-There are now *two separate canvas views* so we can compare the previous version easily. The viewer defaults to the new version but you can access the old version as we will see in a moment.
+There are now *two separate canvas views* so we can compare the previous version easily. The viewer defaults to the new version, but you can access the old version as we will see in a moment.
 
-With script off, the HTML contains all the thumbnails on the right but only the current canvas and its two neighbours on the right:
+With script off, the HTML contains all the thumbnails on the right but only the current canvas and its two neighbours on the left:
 
 https://st-louis-fed-exploded-viewer.azurewebsites.net/wellcome/canvasv/b2101310x/b2101310x_0047.jp2
 
@@ -37,7 +37,7 @@ https://st-louis-fed-exploded-viewer.azurewebsites.net/wellcome/canvasv/b2101310
 
 You can see the neighbouring two canvases - and you can scroll them, but no further. The images act as links to the new page for that canvas.
 
-Now with script on, view the page again. The same HTML loads. 
+Now with script on (via the toggle page, from the link at the top), view the page again. The same HTML loads. 
 
 Then script loads the IIIF Manifest, and builds out the left hand "PDF-like" view behind and ahead of the current canvas.
 

@@ -228,9 +228,9 @@ def no_protocol(old_url):
 
 def get_model():
     return {
-        "script_on": bool(request.cookies.get("script_on", True)),
-        "show_text": bool(request.cookies.get("show_text", True)),
-        "default_cp_text": bool(request.cookies.get("default_cp_text", True))
+        "script_on": bool(request.cookies.get("script_on", False)),
+        "show_text": bool(request.cookies.get("show_text", False)),
+        "default_cp_text": bool(request.cookies.get("default_cp_text", False))
     }
 
 

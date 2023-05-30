@@ -4,6 +4,9 @@ Demo site to experiment with server-side IIIF rendering and progressive enhancem
 
 https://st-louis-fed-exploded-viewer.azurewebsites.net/
 
+[Current status](current-status.md)
+
+
 ### Pass 1
 
  - No Javascript at all
@@ -20,19 +23,17 @@ Use the "raw url" option to see what the manifest and canvas view URLs would loo
 
 #### Optimised
 
- - Manifest: /wellcome/object/b21530622
- - Canvas: /wellcome/canvas/b21530622/b21530622_0006.jp2
+ - Manifest: https://st-louis-fed-exploded-viewer.azurewebsites.net/wellcome/object/b2101310x
+ - Canvas: https://st-louis-fed-exploded-viewer.azurewebsites.net/wellcome/canvas/b2101310x/b2101310x_0068.jp2
 
 #### Unoptimised (raw url)
 
- - Manifest: /exploded/object/iiif.wellcomecollection.org/presentation/b21530622
- - Canvas: /exploded/canvas/iiif.wellcomecollection.org/presentation/b21530622?canvas=3
+ - Manifest: https://st-louis-fed-exploded-viewer.azurewebsites.net/exploded/object/iiif.wellcomecollection.org/presentation/b2101310x
+ - Canvas: https://st-louis-fed-exploded-viewer.azurewebsites.net/exploded/canvas/iiif.wellcomecollection.org/presentation/b2101310x?canvas=67
 
-An even longer url uses the canvas id rather than index.
+An even longer url would use the canvas id rather than index.
  
 Later, we can user Vault on the server to handle _any_ manifest, not just Wellcome and Fraser ones.
-
-So far we are at Pass 1!
 
 ### Pass 2 - design for visual and assistive technologies
 
@@ -46,6 +47,7 @@ The visual design is pretty poor. So before any more progressive enhancement we 
 ### Pass 3, JavaScript enhancement
   
  - Use [Canvas Panel](https://iiif-canvas-panel.netlify.app/)
+ - Use https://st-louis-fed-exploded-viewer.azurewebsites.net/toggles to change behaviour
  - Use Canvas Panel text features (overlay, copy and paste)
  
 ### Pass 4, partial SPA-fication:

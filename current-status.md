@@ -47,6 +47,7 @@ Then script loads the IIIF Manifest, and builds out the left hand "PDF-like" vie
 - Once a scroll event finishes, the page ensures again that any full images intersecting the viewport are loaded.
 - The first image whose top edge is inside the viewport is considered the current image.
 - The thumbnail of the current image is highlighted (becomes active). 
+- If you scroll gently through successive pages (as if reading, e.g., with the mousewheel) you'll see the active highlight move through the thumbnails.
 - If the scroll has taken the thumbnail out of the viewport, we scroll the new thumbnail into view...
 - ...but we don't make scroll position changes to the thumbnail panel if the new canvas thumbnail is still in view, so you can slowly scroll and move the active selection from top to bottom. This feels right.
 - The browser address bar will update after a scroll event when the current image has changed - but this is a `replaceState` - it does not create an entry in the back-button history.

@@ -86,6 +86,7 @@ So what's the user interaction to get to them?
  - Allow the user to adjust the proportions of the two columns (make more room for thumbs or content as desired) 
  - What to do with the metadata (currently underneath the thumbs)?
  - What happens with a narrow viewport? Typically on a phone or tablet - rely on rapid panning/scrolling alone? Show a single-image vertical strip (that can be brushed aside)?
+ - allow script to be forced on or off on query string, so we can more easily share links
 
 ## Further production enhancements
 

@@ -19,6 +19,7 @@ config = {
 WELLCOME = 'wellcome'
 FRASER = 'fraser'
 RAW = 'exploded'
+FRASER_HOST = 'iiif-dev.slf.digirati.io'
 
 app = Flask(__name__)
 app.config.from_mapping(config)
@@ -36,7 +37,7 @@ def load_iiif(source, identifier):
     if source == WELLCOME:
         raw_url = f"https://iiif.wellcomecollection.org/presentation/{identifier}"
     elif source == FRASER:
-        raw_url = f"xxx{identifier}"
+        raw_url = f"https://{FRASER_HOST}/presentation/{identifier}"
     elif source == RAW:
         if identifier.startswith("http"):
             raw_url = identifier
@@ -102,7 +103,7 @@ def get_canvas_id(source, manifest_fragment, canvas_fragment):
     if source == WELLCOME:
         return f"https://iiif.wellcomecollection.org/presentation/{manifest_fragment}/canvases/{canvas_fragment}"
     elif source == FRASER:
-        return None  # tbc
+        return f"https://{FRASER_HOST}/presentation/{manifest_fragment}/canvases/{canvas_fragment}"
     elif source == RAW:
         return canvas_fragment
 
@@ -284,7 +285,7 @@ def get_strings(iiif, prop_name, fallback=None, lang=config["DEFAULT_LANGUAGE"])
 
 def get_static_image(canvas, preferred_size=config["LARGE_IMAGE_SIZE"]):
     painting_annos = canvas["items"][0]["items"]
-    image_anno = next((anno for anno in painting_annos if anno["body"]["type"] == "Image" ), None)
+    image_anno = next((anno for anno in painting_annos if anno["body"]["type"] == "Image"), None)
     image_body = image_anno["body"]  # TODO handle multiple bodies, choice
     if image_body is None:
         return None

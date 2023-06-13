@@ -9,6 +9,15 @@ SAMPLES = {
     },
     "items": [
         {
+            "id": "https://iiif-dev.slf.digirati.io/presentation/632173",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "December 1961"
+                ]
+            }
+        },
+        {
             "id": "https://iiif-dev.slf.digirati.io/presentation/495006",
             "type": "Manifest",
             "label": {
@@ -23,15 +32,6 @@ SAMPLES = {
             "label": {
                 "en": [
                     "February 1943"
-                ]
-            }
-        },
-        {
-            "id": "https://iiif-dev.slf.digirati.io/presentation/632173",
-            "type": "Manifest",
-            "label": {
-                "en": [
-                    "December 1961"
                 ]
             }
         },

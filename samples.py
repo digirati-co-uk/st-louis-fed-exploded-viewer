@@ -9,6 +9,15 @@ SAMPLES = {
     },
     "items": [
         {
+            "id": "https://iiif-dev.slf.digirati.io/presentation/495006",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Activities of Credit Unions in 1943 : Bulletin of the United States Bureau of Labor Statistics, No. 797"
+                ]
+            }
+        },
+        {
             "id": "https://iiif.wellcomecollection.org/presentation/b2101310x",
             "type": "Manifest",
             "label": {

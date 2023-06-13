@@ -18,6 +18,15 @@ SAMPLES = {
             }
         },
         {
+            "id": "https://iiif.wellcomecollection.org/presentation/b29295087",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "Electro-vigueur du Dr. MacLaughlin."
+                ]
+            }
+        },
+        {
             "id": "https://iiif.wellcomecollection.org/presentation/b21023608",
             "type": "Manifest",
             "label": {

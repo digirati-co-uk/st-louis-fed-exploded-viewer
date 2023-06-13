@@ -1,7 +1,8 @@
 import json
 
-from flask import Flask, render_template, request, url_for, make_response, jsonify
+from flask import Flask, render_template, request, url_for, make_response, g
 from flask_caching import Cache
+from functools import wraps
 import requests
 
 import samples
@@ -19,10 +20,67 @@ config = {
 WELLCOME = 'wellcome'
 FRASER = 'fraser'
 RAW = 'exploded'
+WELLCOME_HOST = 'iiif.wellcomecollection.org'
+FRASER_HOST = 'iiif-dev.slf.digirati.io'
 
 app = Flask(__name__)
 app.config.from_mapping(config)
 cache = Cache(app)
+
+
+def set_toggle_model(f):
+    @wraps(f)
+    def decorated_func(*args, **kwargs):
+
+        # For any request, a toggle set on the query string takes precedence over cookies
+        if "script_on" in request.args:
+            script_on = bool(request.args["script_on"])
+        else:
+            script_on = bool(request.cookies.get('script_on'))
+
+        if "show_text" in request.args:
+            show_text = bool(request.args['show_text'])
+        else:
+            show_text = bool(request.cookies.get('show_text'))
+
+        if "default_cp_text" in request.args:
+            default_cp_text = bool(request.args["default_cp_text"])
+        else:
+            default_cp_text = bool(request.cookies.get('default_cp_text'))
+
+        # But may be overridden by a form submission:
+        if request.method == 'POST':
+            if request.form.get('script_on', None):
+                script_on = bool(request.form.get('script_on'))
+            if request.form.get('show_text', None):
+                show_text = bool(request.form.get('show_text'))
+            if request.form.get('default_cp_text', None):
+                default_cp_text = bool(request.form.get('default_cp_text'))
+
+        g.model = {
+            "script_on": script_on,
+            "show_text": show_text,
+            "default_cp_text": default_cp_text
+        }
+
+        response = make_response(f(*args, **kwargs))
+
+        if script_on:
+            response.set_cookie("script_on", str(script_on))
+        else:
+            response.set_cookie("script_on", "False", expires=0)
+        if show_text:
+            response.set_cookie("show_text", str(show_text))
+        else:
+            response.set_cookie("show_text", "False", expires=0)
+        if default_cp_text:
+            response.set_cookie("default_cp_text", str(default_cp_text))
+        else:
+            response.set_cookie("default_cp_text", "False", expires=0)
+
+        return response
+
+    return decorated_func
 
 
 @app.route('/cptest')
@@ -36,7 +94,7 @@ def load_iiif(source, identifier):
     if source == WELLCOME:
         raw_url = f"https://iiif.wellcomecollection.org/presentation/{identifier}"
     elif source == FRASER:
-        raw_url = f"xxx{identifier}"
+        raw_url = f"https://{FRASER_HOST}/presentation/{identifier}"
     elif source == RAW:
         if identifier.startswith("http"):
             raw_url = identifier
@@ -50,11 +108,13 @@ def load_iiif(source, identifier):
 
 
 @app.route('/<source>/canvas/<path:path>')
+@set_toggle_model
 def iiif_canvas(source, path):
     return render_canvas_template(path, source, "canvas")
 
 
 @app.route('/<source>/canvasv/<path:path>')
+@set_toggle_model
 def iiif_canvas_v(source, path):
     return render_canvas_template(path, source, "canvasv")
 
@@ -90,19 +150,20 @@ def render_canvas_template(path, source, template):
 
 
 @app.route('/<source>/object/<path:path>')
+@set_toggle_model
 def iiif_object(source, path):
-    json = load_iiif(source, path)
-    if json["type"] == "Collection":
-        return render_template('collection.html', source=source, collection=json, helpers=get_helpers())
+    iiif = load_iiif(source, path)
+    if iiif["type"] == "Collection":
+        return render_template('collection.html', source=source, collection=iiif, helpers=get_helpers())
     else:
-        return render_template('manifest.html', model=get_page_model(source, json), helpers=get_helpers())
+        return render_template('manifest.html', model=get_page_model(source, iiif), helpers=get_helpers())
 
 
 def get_canvas_id(source, manifest_fragment, canvas_fragment):
     if source == WELLCOME:
-        return f"https://iiif.wellcomecollection.org/presentation/{manifest_fragment}/canvases/{canvas_fragment}"
+        return f"https://{WELLCOME_HOST}/presentation/{manifest_fragment}/canvases/{canvas_fragment}"
     elif source == FRASER:
-        return None  # tbc
+        return f"https://{FRASER_HOST}/presentation/{manifest_fragment}/canvases/{canvas_fragment}"
     elif source == RAW:
         return canvas_fragment
 
@@ -217,7 +278,7 @@ def get_page_model(source, manifest, canvas=None, canvas_template="canvasv"):
                 if idx+1 < len(manifest["items"]):
                     page_model["next_canvas"] = manifest["items"][idx + 1]
 
-    return get_model() | page_model
+    return g.model | page_model
 
 
 def no_protocol(old_url):
@@ -226,29 +287,22 @@ def no_protocol(old_url):
     return new_url
 
 
-def get_model():
-    return {
-        "script_on": bool(request.cookies.get("script_on", False)),
-        "show_text": bool(request.cookies.get("show_text", False)),
-        "default_cp_text": bool(request.cookies.get("default_cp_text", False))
-    }
-
-
 @app.route('/')
+@set_toggle_model
 def index():
-    model = get_model()
+    model = g.model
     model["manifests"] = []
     for manifest in samples.SAMPLES["items"]:
-        id = manifest["id"]
+        manifest_id = manifest["id"]
         model_manifest = {
-            "original": id,
+            "original": manifest_id,
             "label": get_single_string(manifest, "label"),
-            "raw": url_for("iiif_object", source=RAW, path=no_protocol(id))
+            "raw": url_for("iiif_object", source=RAW, path=no_protocol(manifest_id))
         }
-        if id.startswith("https://iiif.wellcomecollection.org/presentation/"):
-            model_manifest["internal"] = url_for("iiif_object", source=WELLCOME, path=id.split('/')[-1])
-        elif id.startswith("(fraser)"):
-            model_manifest["internal"] = model_manifest["raw"]
+        if manifest_id.startswith("https://iiif.wellcomecollection.org/presentation/"):
+            model_manifest["internal"] = url_for("iiif_object", source=WELLCOME, path=manifest_id.split('/')[-1])
+        elif manifest_id.startswith("https://iiif-dev.slf.digirati.io/presentation/"):
+            model_manifest["internal"] = url_for("iiif_object", source=FRASER, path=manifest_id.split('/')[-1])
         else:
             model_manifest["internal"] = model_manifest["raw"]
 
@@ -284,7 +338,7 @@ def get_strings(iiif, prop_name, fallback=None, lang=config["DEFAULT_LANGUAGE"])
 
 def get_static_image(canvas, preferred_size=config["LARGE_IMAGE_SIZE"]):
     painting_annos = canvas["items"][0]["items"]
-    image_anno = next((anno for anno in painting_annos if anno["body"]["type"] == "Image" ), None)
+    image_anno = next((anno for anno in painting_annos if anno["body"]["type"] == "Image"), None)
     image_body = image_anno["body"]  # TODO handle multiple bodies, choice
     if image_body is None:
         return None
@@ -354,38 +408,10 @@ def has_image_service_type(service):
 
 
 @app.route("/toggles", methods=['POST', 'GET'])
+@set_toggle_model
 def toggles():
-    if request.method == 'POST':
-        script_on = bool(request.form.get('script_on', False))
-        show_text = bool(request.form.get('show_text', False))
-        default_cp_text = bool(request.form.get('default_cp_text', False))
-    else:
-        script_on = bool(request.cookies.get("script_on"))
-        show_text = bool(request.cookies.get("show_text"))
-        default_cp_text = bool(request.cookies.get("default_cp_text"))
-
-    model = get_model()
-    model["script_on"] = script_on
-    model["show_text"] = show_text
-    model["default_cp_text"] = default_cp_text
-
-    resp = make_response(render_template("toggles.html", model=model, helpers=get_helpers()))
-
-    if request.method == 'POST':
-        if script_on:
-            resp.set_cookie("script_on", str(script_on))
-        else:
-            resp.set_cookie("script_on", "False", expires=0)
-        if show_text:
-            resp.set_cookie("show_text", str(show_text))
-        else:
-            resp.set_cookie("show_text", "False", expires=0)
-        if default_cp_text:
-            resp.set_cookie("default_cp_text", str(default_cp_text))
-        else:
-            resp.set_cookie("default_cp_text", "False", expires=0)
-
-    return resp
+    # All handled in the @set_toggle_model decorator
+    return render_template("toggles.html", model=g.model, helpers=get_helpers())
 
 
 if __name__ == '__main__':

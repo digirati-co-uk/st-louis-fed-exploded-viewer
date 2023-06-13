@@ -18,6 +18,24 @@ SAMPLES = {
             }
         },
         {
+            "id": "https://iiif-dev.slf.digirati.io/presentation/631979",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "February 1943"
+                ]
+            }
+        },
+        {
+            "id": "https://iiif-dev.slf.digirati.io/presentation/632173",
+            "type": "Manifest",
+            "label": {
+                "en": [
+                    "December 1961"
+                ]
+            }
+        },
+        {
             "id": "https://iiif.wellcomecollection.org/presentation/b2101310x",
             "type": "Manifest",
             "label": {

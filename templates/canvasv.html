@@ -11,7 +11,18 @@
           rel="stylesheet"
           integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
           crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/@digirati/canvas-panel-web-components@1.0.56/dist/bundle.css"
+          rel="stylesheet"
+          crossorigin="anonymous">
     <style>
+        :root {
+            --image-height: 80vh;
+            --image-load-threshold: 0.1;
+            --inline-svg: 1;
+        }
+
+
+
         h1 {
             font-size: 1.3em;
         }
@@ -44,7 +55,7 @@
             background-color: #f2f2f2;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 20px;
         }
 
         /* Style the right column */
@@ -61,8 +72,24 @@
         .image-container {
             max-width: 100%;
             max-height: 100%;
-            margin-top: 20px;
-            margin-bottom: 20px;
+            height: var(--image-height);
+            position: relative;
+            outline: 2px solid red;
+            margin: 0 auto;
+            display: flex;
+            width: auto;
+            align-items: center;
+        }
+        .image-container::selection {
+            background: transparent;
+        }
+
+        .text-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
         }
 
         .image-container a img {
@@ -70,10 +97,30 @@
         }
 
         .image-container img {
-            /*
+            height: var(--image-height);
+            width: 100%;
             max-width: 100%;
-            max-height: 100%;
-            */
+            object-fit: contain;
+            user-select: none;
+        }
+
+        .canvas-modal {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, .5)
+        }
+
+        .canvas-modal .image-container {
+
+        }
+
+        .canvas-modal img {
+            height: 100%;
+            width: 100%;
+            object-fit: contain;
         }
 
     </style>
@@ -84,6 +131,7 @@
         {{ macros.large_image_with_neighbours(model, helpers, described_by_label, not model.script_on) }}
     </div>
     <div class="right-column">
+
         {{ macros.navigator(model, helpers) }}
 
         <h1>{{ model.label }}</h1>
@@ -95,16 +143,34 @@
             {{ macros.thumbnails(model, helpers) }}
         </nav>
 
-        <div id="metadata">
-            {{ macros.metadata(model, helpers) }}
+        <div id="metadata" style="padding: 20px; font-size: 18px">
+            <!-- Metadata panel - available options.
+                variation?: 'table' | 'list';
+                labelStyle?: 'muted' | 'bold' | 'caps' | 'small-caps';
+                labelWidth?: number;
+            -->
+            {% if model.script_on %}
+                <metadata-panel
+                    id="mp"
+                    manifest-id="{{ model.manifest.id }}"
+                    canvas-id="{{ model.canvas.id }}"
+                    allow-html="true"
+                    variation="list"
+                    label-style="small-caps"
+                ></metadata-panel>
+            {% else %}
+                {{ macros.metadata(model, helpers) }}
+            {% endif %}
         </div>
 
         <div class="canvas-description" id="{{ described_by_label }}">
             <h2>{{ canvas_label }}</h2>
-            {% if model.text_lines is not none %}
-                <p><em>The image contains the following text:</em></p>
-                {{ macros.text_lines(model) }}
-            {% endif %}
+            <div style="display:none">
+                {% if model.text_lines is not none %}
+                    <p><em>The image contains the following text:</em></p>
+                    {{ macros.text_lines(model) }}
+                {% endif %}
+            </div>
         </div>
     </div>
     {% if model.prev_canvas %}
@@ -124,12 +190,18 @@
 
 
 {% if model.script_on %}
+    <script src="https://cdn.jsdelivr.net/npm/@digirati/canvas-panel-web-components@latest"></script>
     <script>
         const model = {{ helpers.trim_model(model)|tojson(indent=4)}};
         const scrollImages = document.getElementById("scrollImages");
         const thumbContainer = document.getElementById("thumbContainer");
         const thumbDivs = thumbContainer.children;
         let loadedManifest = null;
+
+        const imageThreshold = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--image-load-threshold'));
+        const inlineSvg = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--inline-svg'), 10) === 1;
+
+        console.log('imageThreshold', imageThreshold)
 
         fetch(model.manifest_id).then(res => res.json()).then(manifest => {
 
@@ -143,10 +215,13 @@
                 let imgElement;
                 if(cvsIdx == model.canvas_index - 1){
                     imgElement = prevCanvasImg;
+                    imgContainer = prevCanvasImg.parentElement;
                 } else if(cvsIdx == model.canvas_index){
                     imgElement = initialCanvasImg;
+                    imgContainer = initialCanvasImg.parentElement;
                 } else if(cvsIdx == model.canvas_index + 1) {
                     imgElement = nextCanvasImg;
+                    imgContainer = nextCanvasImg.parentElement;
                 } else {
                     imgElement = makeEmptyImage(canvas);
                     // use the thumbnail as src initially.
@@ -160,11 +235,106 @@
                 imgElement.setAttribute("data-index", cvsIdx.toString());
                 imgElement.setAttribute("title", getLabel(canvas.label));
 
+
+                // Modal / nav
+                // const modal = document.createElement("dialog");
+                // modal.setAttribute("id", `modal-${cvsIdx}`);
+                // modal.setAttribute("class", "canvas-modal");
+
+                // const imageContainer = document.createElement("div");
+                // imageContainer.setAttribute("class", "image-container");
+                // modal.appendChild(imageContainer);
+
+                // const image = document.createElement("img");
+                // image.setAttribute("src", imgElement.src);
+                // imageContainer.appendChild(image);
+
+                // modal.addEventListener('close', () => {
+                //     image.style.viewTransitionName = '';
+                // })
+
+
+                // const modalButton = document.createElement("button");
+                // modalButton.addEventListener("click", () => {
+                //     imgContainer.style.viewTransitionName = 'current-image';
+                //     const run = () => {
+                //         image.style.viewTransitionName = 'current-image';
+                //         modal.showModal();
+                //         imgContainer.style.viewTransitionName = '';
+                //     }
+
+
+                //     if (document.startViewTransition) {
+                //         document.startViewTransition(run).updateCallbackDone.then(() => {
+                //             image.style.viewTransitionName = '';
+                //         });
+                //         } else {
+                //         run();
+                //     }
+                // });
+                // modalButton.setAttribute("type", "button");
+                // modalButton.setAttribute("class", "btn btn-primary");
+                // modalButton.setAttribute('style', 'z-index: 10; position: absolute; top: 0; right: 0;')
+                // modalButton.innerHTML = "View";
+
+                // imgContainer.appendChild(modalButton);
+
+                // <embed class="text-overlay" src="/static/test.svg" style="width: 100%;"/>
+                const annos = canvas.annotations[0];
+                if (annos) {
+                    const svg = (annos.id).replace('/annotations/v3/', '/svg/').slice(0, -5);
+                    console.log(svg)
+                    if (inlineSvg) {
+                        fetch(svg).then(resp => {
+                            resp.text().then(async svg => {
+                                const svgContainer = document.createElement("div");
+                                svgContainer.innerHTML = svg;
+                                const svgElement = svgContainer.firstElementChild;
+                                svgElement.removeAttribute('width');
+                                svgElement.removeAttribute('height');
+                                svgElement.setAttribute("class", "text-overlay");
+                                imgContainer.appendChild(svgElement);
+                            }).catch(err => {
+                                console.log("Error loading SVG", err);
+                            })
+                        })
+                    } else {
+                        const svg = document.createElement("embed");
+                        svg.setAttribute("class", "text-overlay");
+                        svg.setAttribute("src", svg);
+                        svg.setAttribute("style", "width: 100%;");
+                        imgContainer.appendChild(svg);
+                    }
+                }
+
                 if(cvsIdx < model.canvas_index - 1){
                     scrollImages.insertBefore(imgContainer, prevCanvasImg.parentElement);
                 } else if(cvsIdx > model.canvas_index + 1){
                     scrollImages.appendChild(imgContainer);
                 }
+                //scrollImages.appendChild(modal);
+
+
+                const observer = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if(entry.isIntersecting){
+                            const image = entry.target;
+                            const dataSrc = image.getAttribute("data-src");
+                            if(dataSrc){
+                                console.log("Setting source " + dataSrc);
+                                image.removeAttribute("data-src");
+                                image.setAttribute("src", dataSrc);
+                            }
+                            observer.disconnect();
+                        }
+                    });
+                    // https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API#creating_an_intersection_observer
+                    // The threshold can be changed, 1 will be when the entire image is in the viewport and 0.5 will
+                    // be when half of the image is in the viewport.
+                    // It's set in the CSS variable --image-load-threshold
+                }, { root: scrollImages, threshold: imageThreshold });
+
+                observer.observe(imgElement);
             }
 
             initialCanvasImg.scrollIntoView({ block: "center" });
@@ -212,11 +382,11 @@
                         significantImage = image;
                         const path = image.getAttribute("data-path");
                         history.replaceState(null, "", path);
-                        const idx = parseInt(image.getAttribute("data-index"));
+                        const idx = parseInt(image.getAttribute("data-index"), 10);
                         let requiredThumbnail = null;
                         for(let thumbIdx = 0; thumbIdx < thumbDivs.length; thumbIdx++){
                             const thumbnailAnchor = thumbDivs[thumbIdx].firstElementChild;
-                            if(thumbIdx == idx){
+                            if(thumbIdx === idx){
                                 thumbnailAnchor.classList.add("active");
                                 thumbnailAnchor.setAttribute("aria-current", "page");
                                 requiredThumbnail = thumbDivs[thumbIdx];
@@ -232,12 +402,13 @@
                     } else {
                         image.classList.remove("img-current");
                     }
-                    const dataSrc = image.getAttribute("data-src");
-                    if(dataSrc){
-                        console.log("Setting source " + dataSrc);
-                        image.removeAttribute("data-src");
-                        image.setAttribute("src", dataSrc);
-                    }
+                    // Moved to intersection observer for more control.
+                    // const dataSrc = image.getAttribute("data-src");
+                    // if(dataSrc){
+                    //    console.log("Setting source " + dataSrc);
+                    //    image.removeAttribute("data-src");
+                    //    image.setAttribute("src", dataSrc);
+                    //}
                     haveSeenVisibleImages = true;
                 } else {
                     if(haveSeenVisibleImages){
@@ -260,8 +431,8 @@
             const imageAnno = paintingAnnos.find(anno => anno["body"]["type"] == "Image");
             const sizedImage = getSizedImage(imageAnno["body"], 1000);
             const img = document.createElement("img");
-            img.setAttribute("width", sizedImage.width);
-            img.setAttribute("height", sizedImage.height);
+            //img.setAttribute("width", sizedImage.width);
+            //img.setAttribute("height", sizedImage.height);
             img.setAttribute("data-src", sizedImage.id);
             img.setAttribute("title", getLabel(canvas.label));
             return img;

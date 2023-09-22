@@ -282,10 +282,9 @@
                 // <embed class="text-overlay" src="/static/test.svg" style="width: 100%;"/>
                 const annos = canvas.annotations[0];
                 if (annos) {
-                    const svg = (annos.id).replace('/annotations/v3/', '/svg/').slice(0, -5);
-                    console.log(svg)
+                    const svgUrl = (annos.id).replace('/annotations/v3/', '/svg/').slice(0, -5);
                     if (inlineSvg) {
-                        fetch(svg).then(resp => {
+                        fetch(svgUrl, { cache: 'force-cache' }).then(resp => {
                             resp.text().then(async svg => {
                                 const svgContainer = document.createElement("div");
                                 svgContainer.innerHTML = svg;
@@ -301,7 +300,7 @@
                     } else {
                         const svg = document.createElement("embed");
                         svg.setAttribute("class", "text-overlay");
-                        svg.setAttribute("src", svg);
+                        svg.setAttribute("src", svgUrl);
                         svg.setAttribute("style", "width: 100%;");
                         imgContainer.appendChild(svg);
                     }

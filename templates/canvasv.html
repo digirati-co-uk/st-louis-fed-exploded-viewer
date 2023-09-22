@@ -74,7 +74,6 @@
             max-height: 100%;
             height: var(--image-height);
             position: relative;
-            outline: 2px solid red;
             margin: 0 auto;
             display: flex;
             width: auto;
@@ -123,6 +122,95 @@
             object-fit: contain;
         }
 
+        .open-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 2;
+        }
+
+
+        .image-modal {
+            background: #F2F2F2;
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+        }
+
+        .close-button {
+            z-index: 3;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .canvas-panel {
+            z-index: 2;
+
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0; /* Required for downsizing */
+
+            --atlas-container-flex: 1 1 0px;
+            --atlas-background: #eee;
+        }
+
+        .current-image {
+            view-transition-name: current-image;
+            z-index: 999;
+            position: relative;
+        }
+
+        .image-placeholder-container {
+            position: absolute;
+            z-index: 1;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+        }
+        .image-placeholder {
+            margin: auto;
+            height: 100%;
+        }
+
+        ::view-transition-old(root) {
+            pointer-events: none;
+        }
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation-duration: 500ms;
+            pointer-events: none;
+        }
+
+        ::view-transition-new(current-image) {
+            pointer-events: visible;
+        }
+
+        ::view-transition-old(current-image),
+        ::view-transition-new(current-image) {
+            animation-duration: 500ms;
+            height: auto;
+            right: 0;
+            left: auto;
+            transform-origin: right center;
+            z-index: 99;
+            opacity: 1;
+        }
+
+        ::view-transition-old(current-image) {
+            pointer-events: none;
+            height: 100%;
+            width: 100%;
+            object-fit: contain;
+            background: #F2F2F2;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -237,6 +325,27 @@
 
 
                 // Modal / nav
+                const openButton = document.createElement("button");
+                openButton.setAttribute("type", "button");
+                openButton.setAttribute("class", "btn btn-primary open-button");
+                openButton.innerText = 'View';
+                imgContainer.appendChild(openButton);
+                openButton.addEventListener('click', () => {
+                    // Create and open the modal
+                    if (document.startViewTransition) {
+                        imgContainer.classList.add('current-image');
+                        document.startViewTransition(
+                            () => createModal(manifest.id, canvas, imgContainer, imgElement.src)
+                        ).updateCallbackDone.then(() => {
+                           // setTimeout(() =>imgContainer.classList.remove('current-image'), 500);
+                        });
+                    } else {
+                        createModal(manifest.id, canvas);
+                    }
+
+                })
+
+
                 // const modal = document.createElement("dialog");
                 // modal.setAttribute("id", `modal-${cvsIdx}`);
                 // modal.setAttribute("class", "canvas-modal");
@@ -461,6 +570,69 @@
                 "id": `${svc_id.id}/full/${usefulSize.width},${usefulSize.height}/0/default.jpg`,
                 "width": usefulSize.width,
                 "height": usefulSize.height
+            }
+        }
+
+        function createModal(manifest, canvas, container, placeholder) {
+            const canvasId = canvas.id;
+            const modal = document.createElement("div");
+            modal.setAttribute("class", "image-modal");
+            document.body.appendChild(modal);
+
+            const closeButton = document.createElement("button");
+            closeButton.setAttribute("type", "button");
+            closeButton.setAttribute("class", "btn btn-primary close-button");
+            closeButton.innerHTML = "Close";
+
+            const close = () => {
+                canvasPanel.style.display = 'none';
+                document.startViewTransition(() => {
+                    container.classList.add('current-image');
+                    modal.remove();
+                }).updateCallbackDone.then(() => {
+                    container.classList.remove('current-image');
+                });
+            }
+
+            closeButton.addEventListener("click", () => {
+                close();
+            });
+            const imagePlaceholderContainer = document.createElement("div");
+            imagePlaceholderContainer.setAttribute("class", "image-placeholder-container");
+
+            const imagePlaceholder = document.createElement("img");
+            imagePlaceholder.setAttribute("class", "image-placeholder current-image");
+            imagePlaceholder.src = placeholder
+            imagePlaceholderContainer.appendChild(imagePlaceholder);
+            const aspectRatio = canvas.width / canvas.height;
+            imagePlaceholder.setAttribute('style', `aspect-ratio: ${aspectRatio}`);
+
+            modal.appendChild(imagePlaceholderContainer);
+
+            const canvasPanel = document.createElement('canvas-panel');
+            canvasPanel.className = 'canvas-panel'
+            canvasPanel.setAttribute('manifest-id', manifest);
+            canvasPanel.setAttribute('canvas-id', canvasId);
+            modal.appendChild(closeButton);
+            modal.appendChild(canvasPanel);
+
+            let minZooms = 0;
+            canvasPanel.addEventListener('zoom', e => {
+                if (e.detail.isMin) {
+                    minZooms++;
+                } else {
+                    minZooms = 0;
+                }
+
+                if (minZooms >= 2) {
+                    close();
+                }
+            })
+
+            container.classList.remove('current-image');
+
+            return () => {
+                modal.remove();
             }
         }
 

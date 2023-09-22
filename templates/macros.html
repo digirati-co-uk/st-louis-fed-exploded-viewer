@@ -41,12 +41,12 @@
         <img class="img-prev"
              id="canvasImagePrevious"
              src="{{ prev_image.id }}"
-             width="{{ prev_image.width }}" height="{{ prev_image.height }}"
+{#             width="{{ prev_image.width }}" height="{{ prev_image.height }}"#}
              {% if make_links %}
                  alt="link to previous page"
                  title="Go to previous page"
              {% endif %}
-             style="width: {{ prev_image.width }}px; height: {{ prev_image.height }}px"
+{#             style="width: {{ prev_image.width }}px; height: {{ prev_image.height }}px"#}
              data-canvas-id="{{ model.prev_canvas.id }}"
         />{% if make_links %}</a>{% endif %}
         </div>
@@ -56,9 +56,9 @@
     <img class="img-current"
          id="canvasImage"
          src="{{ image.id }}"
-         width="{{ image.width }}" height="{{ image.height }}"
+{#         width="{{ image.width }}" height="{{ image.height }}"#}
          aria-describedby="{{ described_by_label }}"
-         style="width: {{ image.width }}px; height: {{ image.height }}px"
+{#         style="width: {{ image.width }}px; height: {{ image.height }}px"#}
          data-canvas-id="{{ model.canvas.id }}"
     />
     </div>
@@ -69,12 +69,12 @@
         <img class="img-next"
              id="canvasImageNext"
              src="{{ next_image.id }}"
-             width="{{ next_image.width }}" height="{{ next_image.height }}"
+{#             width="{{ next_image.width }}" height="{{ next_image.height }}"#}
              {% if make_links %}
                 alt="link to next page"
                 title="Go to next page"
              {% endif %}
-             style="width: {{ next_image.width }}px; height: {{ next_image.height }}px"
+{#             style="width: {{ next_image.width }}px; height: {{ next_image.height }}px"#}
              data-canvas-id="{{ model.next_canvas.id }}"
         />{% if make_links %}</a>{% endif %}
         </div>

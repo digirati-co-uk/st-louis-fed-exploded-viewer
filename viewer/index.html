@@ -356,6 +356,45 @@ const layoutEl = document.getElementById('layout');
         return body ? getSizedImage(body, 0) : null;
     }
 
+    function buildSvgFromAnnotations(width, height, items) {
+        const ns = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.classList.add('text-overlay');
+
+        const style = document.createElementNS(ns, 'style');
+        style.textContent = `
+            .text-line-segment { fill: rgba(0,0,0,0) }
+            .text-line-segment::selection { fill: #fff; background: rgba(15, 76, 155, 0.8) }
+        `;
+        svg.appendChild(style);
+
+        for (const anno of items) {
+            // target is e.g. "https://...canvas#xywh=x,y,w,h"
+            const xywhStr = typeof anno.target === 'string'
+                ? anno.target.split('=').at(-1)
+                : null;
+            if (!xywhStr) continue;
+            const [x, y, w, h] = xywhStr.split(',').map(Number);
+            if ([x, y, w, h].some(v => isNaN(v))) continue;
+
+            const value = anno.body?.value;
+            if (!value?.trim()) continue;
+
+            const text = document.createElementNS(ns, 'text');
+            text.setAttribute('x', x);
+            text.setAttribute('y', Math.round(y + h * 0.75));  // baseline, matching server
+            text.setAttribute('textLength', w);
+            text.setAttribute('font-size', h);
+            text.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+            text.setAttribute('class', 'text-line-segment');
+            text.textContent = value;
+            svg.appendChild(text);
+        }
+
+        return svg;
+    }
+
     // --- Viewer builder ---
 
     function buildViewer(manifest) {
@@ -400,11 +439,11 @@ const layoutEl = document.getElementById('layout');
             containerEls.push(container);
 
             // --- SVG text overlay ---
+            // Prefer an explicit SVG rendering; fall back to building one from annotations.
             const svgRendering = (canvas.rendering || []).find(r => r.format === 'image/svg+xml');
             if (svgRendering?.id) {
-                const svgUrl = svgRendering.id;
-                fetch(svgUrl, { cache: 'force-cache' })
-                    .then(r => r.ok ? r.text() : Promise.reject(new Error(`SVG HTTP ${r.status}`)))
+                fetch(svgRendering.id, { cache: 'force-cache' })
+                    .then(r => r.ok ? r.text() : Promise.reject())
                     .then(svgText => {
                         const tmp = document.createElement('div');
                         tmp.innerHTML = svgText;
@@ -417,6 +456,22 @@ const layoutEl = document.getElementById('layout');
                         }
                     })
                     .catch(() => {});
+            } else {
+                const annoPage = canvas.annotations?.[0];
+                if (annoPage?.id) {
+                    fetch(annoPage.id)
+                        .then(r => r.ok ? r.json() : Promise.reject())
+                        .then(page => {
+                            // Dimensions from partOf if present, else from the canvas itself
+                            const partOf = page.partOf?.[0];
+                            const w = (partOf?.type === 'Canvas' && partOf.width) ? partOf.width : canvas.width;
+                            const h = (partOf?.type === 'Canvas' && partOf.height) ? partOf.height : canvas.height;
+                            if (!w || !h) return;
+                            const svgEl = buildSvgFromAnnotations(w, h, page.items || []);
+                            container.appendChild(svgEl);
+                        })
+                        .catch(() => {});
+                }
             }
 
             // --- Thumbnail ---

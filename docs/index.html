@@ -631,30 +631,27 @@ const layoutEl = document.getElementById('layout');
     }
     // --- Resizable divider ---
     const divider = document.getElementById('divider');
-    const layoutEl2 = document.getElementById('layout');
-    let dragging = false;
+    let dragLayoutRect = null;
 
-    divider.addEventListener('mousedown', e => {
-        dragging = true;
+    divider.addEventListener('pointerdown', e => {
+        divider.setPointerCapture(e.pointerId);
+        dragLayoutRect = document.getElementById('layout').getBoundingClientRect();
         divider.classList.add('active');
-        document.body.style.cursor = 'col-resize';
         document.body.style.userSelect = 'none';
         e.preventDefault();
     });
 
-    document.addEventListener('mousemove', e => {
-        if (!dragging) return;
-        const layoutRect = layoutEl2.getBoundingClientRect();
-        const newWidth = e.clientX - layoutRect.left;
-        const clamped = Math.max(150, Math.min(layoutRect.width - 125, newWidth));
+    divider.addEventListener('pointermove', e => {
+        if (!divider.hasPointerCapture(e.pointerId)) return;
+        const newWidth = e.clientX - dragLayoutRect.left;
+        const clamped = Math.max(150, Math.min(dragLayoutRect.width - 125, newWidth));
         scrollPanel.style.width = clamped + 'px';
     });
 
-    document.addEventListener('mouseup', () => {
-        if (!dragging) return;
-        dragging = false;
+    divider.addEventListener('pointerup', e => {
+        if (!divider.hasPointerCapture(e.pointerId)) return;
+        divider.releasePointerCapture(e.pointerId);
         divider.classList.remove('active');
-        document.body.style.cursor = '';
         document.body.style.userSelect = '';
         upgradeVisibleImages(_containerEls);
     });

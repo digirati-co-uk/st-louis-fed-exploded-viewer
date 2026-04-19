@@ -4,7 +4,7 @@ _See [implementation.md](implementation.md) for full details._
 
 ### Manifest with per-canvas SVG
 
-[https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/?manifest=https%3A%2F%2Fiiif.wellcomecollection.org%2Fpresentation%2Fb28047345](The transformations (or metamorphoses) of insects)
+[The transformations (or metamorphoses) of insects - wc.org](https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/?manifest=https%3A%2F%2Fiiif.wellcomecollection.org%2Fpresentation%2Fb28047345)
 
 Each Canvas has a `rendering` property linking to SVG XML:
 
@@ -29,7 +29,7 @@ The viewer uses the SVG directly as the overlay source.
 
 ### Manifest with W3C annotations
 
-[https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/?manifest=https%3A%2F%2Fiiif.wellcomecollection.org%2Fpresentation%2Fb31356412](The universe, or, The infinitely great and the infinitely little)
+[The universe, or, The infinitely great and the infinitely little](https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/?manifest=https%3A%2F%2Fiiif.wellcomecollection.org%2Fpresentation%2Fb31356412)
 
 Each canvas has a link to `annotations`:
 
@@ -55,7 +55,7 @@ The viewer computes the SVG (using the same approach taken server-side on the pr
 
 ### Manifest with single all-text annotation page
 
-[https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/?manifest=https%3A%2F%2Fdigirati-co-uk.github.io%2Fst-louis-fed-exploded-viewer%2Fb28047345.json](The transformations (or metamorphoses) of insects - MUTATED)
+[The transformations (or metamorphoses) of insects - MUTATED](https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/?manifest=https%3A%2F%2Fdigirati-co-uk.github.io%2Fst-louis-fed-exploded-viewer%2Fb28047345.json)
 
 This Manifest has been _augmented_ by DLCS text services; it has a `manifest.annotations` property that links to a single file containing ALL the annotations:
 

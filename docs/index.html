@@ -15,7 +15,9 @@
         }
 
         .scroll-panel {
-            flex: 0 0 70%;
+            flex: 0 0 auto;
+            width: 70%;
+            min-width: 150px;
             overflow-y: auto;
             background: #f2f2f2;
             display: flex;
@@ -24,8 +26,20 @@
             padding: 20px;
         }
 
+        .divider {
+            flex: 0 0 5px;
+            background: #ccc;
+            cursor: col-resize;
+            transition: background 0.15s;
+        }
+
+        .divider:hover, .divider.active {
+            background: #888;
+        }
+
         .side-panel {
-            flex: 0 0 30%;
+            flex: 1 1 0;
+            min-width: 120px;
             background: #eaeaea;
             display: flex;
             flex-direction: column;
@@ -211,6 +225,7 @@
 
 <div class="layout" id="layout">
     <div class="scroll-panel" id="scrollPanel"></div>
+    <div class="divider" id="divider"></div>
     <div class="side-panel" id="sidePanel">
         <div class="side-panel-header">
             <div class="nav-bar">
@@ -614,6 +629,34 @@ const layoutEl = document.getElementById('layout');
             }
         });
     }
+    // --- Resizable divider ---
+    const divider = document.getElementById('divider');
+    const layoutEl2 = document.getElementById('layout');
+    let dragging = false;
+
+    divider.addEventListener('mousedown', e => {
+        dragging = true;
+        divider.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        const layoutRect = layoutEl2.getBoundingClientRect();
+        const newWidth = e.clientX - layoutRect.left;
+        const clamped = Math.max(150, Math.min(layoutRect.width - 125, newWidth));
+        scrollPanel.style.width = clamped + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (!dragging) return;
+        dragging = false;
+        divider.classList.remove('active');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+    });
 </script>
 </body>
 </html>

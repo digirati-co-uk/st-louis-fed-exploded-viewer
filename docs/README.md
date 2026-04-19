@@ -1,5 +1,7 @@
 ## Samples
 
+_See [implementation.md](implementation.md) for full details._
+
 ### Manifest with per-canvas SVG
 
 [https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/?manifest=https%3A%2F%2Fiiif.wellcomecollection.org%2Fpresentation%2Fb28047345](The transformations (or metamorphoses) of insects)

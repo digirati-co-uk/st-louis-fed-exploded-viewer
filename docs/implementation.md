@@ -21,17 +21,17 @@ The page is opened with query parameters:
 The layout is a CSS flexbox row that fills the full viewport height (`height: 100vh; overflow: hidden`):
 
 ```
-┌──────────────────────────┬─┬─────────────────┐
+┌──────────────────────────┬─┬──────────────────┐
 │                          │ │ ← sticky header  │
 │    scroll-panel (70%)    │d│   nav buttons    │
 │                          │i│   manifest input │
 │  canvas images stacked   │v│   title / count  │
 │  vertically with gaps    │i│   text badge     │
-│                          │d│─────────────────│
+│                          │d│──────────────────│
 │                          │e│ thumbnail grid   │
 │                          │r│ (scrolls         │
 │                          │ │  independently)  │
-└──────────────────────────┴─┴─────────────────┘
+└──────────────────────────┴─┴──────────────────┘
 ```
 
 - **scroll-panel** — left column, `overflow-y: auto`, contains all canvas image containers stacked with `gap: 20px`.

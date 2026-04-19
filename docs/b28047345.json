@@ -549,7 +549,7 @@
       ],
       "annotations": [
         {
-          "id": "https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/all-text-b28047345",
+          "id": "http://localhost:5294/annotations/lines/v1/1/with-figures/transformations/b28047345",
           "type": "AnnotationPage",
           "label": {
             "en": [
@@ -76553,7 +76553,7 @@
   ],
   "annotations": [
     {
-      "id": "ttps://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/all-text-b28047345.json",
+      "id": "https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/all-text-b28047345.json",
       "type": "AnnotationPage",
       "profile": "https://dlcs.io/profiles/all-text",
       "label": {

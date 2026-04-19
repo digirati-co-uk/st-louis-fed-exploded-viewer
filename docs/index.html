@@ -64,6 +64,23 @@
             border: 2px solid transparent;
         }
 
+        .text-source-badge {
+            position: absolute;
+            bottom: 6px;
+            right: 8px;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            opacity: 0.7;
+            pointer-events: none;
+            z-index: 1;
+            font-family: sans-serif;
+        }
+
+        .text-source-badge.svg     { background: #d4edda; color: #155724; }
+        .text-source-badge.derived { background: #fff3cd; color: #856404; }
+        .text-source-badge.none    { background: #f8d7da; color: #721c24; }
+
         .image-container.current {
             border-color: #0066cc;
         }
@@ -438,8 +455,11 @@ const layoutEl = document.getElementById('layout');
             scrollPanel.appendChild(container);
             containerEls.push(container);
 
-            // --- SVG text overlay ---
-            // Prefer an explicit SVG rendering; fall back to building one from annotations.
+            // --- SVG text overlay + source badge ---
+            const badge = document.createElement('div');
+            badge.className = 'text-source-badge';
+            container.appendChild(badge);
+
             const svgRendering = (canvas.rendering || []).find(r => r.format === 'image/svg+xml');
             if (svgRendering?.id) {
                 fetch(svgRendering.id, { cache: 'force-cache' })
@@ -453,24 +473,36 @@ const layoutEl = document.getElementById('layout');
                             svgEl.removeAttribute('height');
                             svgEl.classList.add('text-overlay');
                             container.appendChild(svgEl);
+                            badge.textContent = 'SVG';
+                            badge.classList.add('svg');
                         }
                     })
-                    .catch(() => {});
+                    .catch(() => {
+                        badge.textContent = 'no text';
+                        badge.classList.add('none');
+                    });
             } else {
                 const annoPage = canvas.annotations?.[0];
                 if (annoPage?.id) {
                     fetch(annoPage.id)
                         .then(r => r.ok ? r.json() : Promise.reject())
                         .then(page => {
-                            // Dimensions from partOf if present, else from the canvas itself
                             const partOf = page.partOf?.[0];
                             const w = (partOf?.type === 'Canvas' && partOf.width) ? partOf.width : canvas.width;
                             const h = (partOf?.type === 'Canvas' && partOf.height) ? partOf.height : canvas.height;
                             if (!w || !h) return;
                             const svgEl = buildSvgFromAnnotations(w, h, page.items || []);
                             container.appendChild(svgEl);
+                            badge.textContent = 'text derived';
+                            badge.classList.add('derived');
                         })
-                        .catch(() => {});
+                        .catch(() => {
+                            badge.textContent = 'no text';
+                            badge.classList.add('none');
+                        });
+                } else {
+                    badge.textContent = 'no text';
+                    badge.classList.add('none');
                 }
             }
 

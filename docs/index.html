@@ -64,6 +64,18 @@
             border: 2px solid transparent;
         }
 
+        #textOverlayIndicator {
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        #textOverlayIndicator.svg     { background: #d4edda; color: #155724; }
+        #textOverlayIndicator.derived { background: #fff3cd; color: #856404; }
+        #textOverlayIndicator.mixed   { background: #cce5ff; color: #004085; }
+        #textOverlayIndicator.none    { background: #f8d7da; color: #721c24; }
+
         .image-container.current {
             border-color: #0066cc;
         }
@@ -211,6 +223,7 @@
             </div>
             <div class="manifest-label" id="manifestLabel"></div>
             <div class="page-count" id="pageCount"></div>
+            <div id="textOverlayIndicator"></div>
         </div>
         <div class="side-panel-thumbnails">
             <div class="thumbnail-grid" id="thumbnailGrid"></div>
@@ -405,6 +418,31 @@ const layoutEl = document.getElementById('layout');
         const canvases = manifest.items || [];
         pageCountEl.textContent = `${canvases.length} pages`;
 
+        let svgCount = 0, derivedCount = 0;
+        for (const canvas of canvases) {
+            if ((canvas.rendering || []).some(r => r.format === 'image/svg+xml')) svgCount++;
+            else if (canvas.annotations?.[0]?.id) derivedCount++;
+        }
+        const noneCount = canvases.length - svgCount - derivedCount;
+        const indicator = document.getElementById('textOverlayIndicator');
+        if (svgCount === canvases.length) {
+            indicator.textContent = 'SVG text overlays';
+            indicator.className = 'svg';
+        } else if (derivedCount === canvases.length) {
+            indicator.textContent = 'Text derived from annotations';
+            indicator.className = 'derived';
+        } else if (noneCount === canvases.length) {
+            indicator.textContent = 'No text overlays';
+            indicator.className = 'none';
+        } else {
+            const parts = [];
+            if (svgCount)     parts.push(`${svgCount} SVG`);
+            if (derivedCount) parts.push(`${derivedCount} derived`);
+            if (noneCount)    parts.push(`${noneCount} none`);
+            indicator.textContent = parts.join(', ');
+            indicator.className = 'mixed';
+        }
+
         const containerEls = [];
         const thumbEls = [];
 
@@ -439,7 +477,6 @@ const layoutEl = document.getElementById('layout');
             containerEls.push(container);
 
             // --- SVG text overlay ---
-            // Prefer an explicit SVG rendering; fall back to building one from annotations.
             const svgRendering = (canvas.rendering || []).find(r => r.format === 'image/svg+xml');
             if (svgRendering?.id) {
                 fetch(svgRendering.id, { cache: 'force-cache' })
@@ -462,7 +499,6 @@ const layoutEl = document.getElementById('layout');
                     fetch(annoPage.id)
                         .then(r => r.ok ? r.json() : Promise.reject())
                         .then(page => {
-                            // Dimensions from partOf if present, else from the canvas itself
                             const partOf = page.partOf?.[0];
                             const w = (partOf?.type === 'Canvas' && partOf.width) ? partOf.width : canvas.width;
                             const h = (partOf?.type === 'Canvas' && partOf.height) ? partOf.height : canvas.height;

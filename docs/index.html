@@ -441,7 +441,7 @@ const layoutEl = document.getElementById('layout');
         const profile = page.profile;
         if (!profile) return false;
         const profiles = Array.isArray(profile) ? profile : [profile];
-        return profiles.some(p => typeof p === 'string' && (p.includes('complete') || p.includes('all-text')));
+        return profiles.includes('https://dlcs.io/profiles/all-text');
     }
 
     // Returns a Promise<Map<canvasId, annotation[]>> if a complete annotation

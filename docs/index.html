@@ -279,11 +279,23 @@ const layoutEl = document.getElementById('layout');
     } else {
         fetch(manifestUrl)
             .then(r => {
-                if (!r.ok) throw new Error(`HTTP ${r.status} loading manifest`);
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 return r.json();
             })
             .then(manifest => buildViewer(manifest))
-            .catch(err => showError(err.message));
+            .catch(err => {
+                const isNetworkError = err instanceof TypeError;
+                const isLocal = /^https?:\/\/localhost|^https?:\/\/127\./.test(manifestUrl);
+                const hint = isNetworkError
+                    ? (isLocal
+                        ? 'The manifest server may not be running, or it needs to send <code>Access-Control-Allow-Origin: *</code> headers. ' +
+                          'If you are opening this viewer as a local file, serve it from a local HTTP server instead ' +
+                          '(e.g. <code>npx serve docs</code>) so it has a proper origin.'
+                        : 'The request was blocked — check that the server sends CORS headers ' +
+                          '(<code>Access-Control-Allow-Origin: *</code>) and that the URL is correct.')
+                    : '';
+                showError(`Could not load manifest: ${err.message}. ${hint}`);
+            });
     }
 
     function loadManifestFromInput() {

@@ -96,10 +96,11 @@
             display: inline-block;
         }
 
-        #textOverlayIndicator.svg     { background: #d4edda; color: #155724; }
-        #textOverlayIndicator.derived { background: #fff3cd; color: #856404; }
-        #textOverlayIndicator.mixed   { background: #cce5ff; color: #004085; }
-        #textOverlayIndicator.none    { background: #f8d7da; color: #721c24; }
+        #textOverlayIndicator.svg      { background: #d4edda; color: #155724; }
+        #textOverlayIndicator.manifest { background: #d0e8ff; color: #004085; }
+        #textOverlayIndicator.derived  { background: #fff3cd; color: #856404; }
+        #textOverlayIndicator.mixed    { background: #cce5ff; color: #004085; }
+        #textOverlayIndicator.none     { background: #f8d7da; color: #721c24; }
 
         .image-container.current {
             border-color: #0066cc;
@@ -487,27 +488,33 @@ const layoutEl = document.getElementById('layout');
         const canvases = manifest.items || [];
         pageCountEl.textContent = `${canvases.length} pages`;
 
-        let svgCount = 0, derivedCount = 0;
+        const hasManifestBundle = (manifest.annotations || []).some(hasCompleteProfile);
+        let svgCount = 0, manifestCount = 0, perCanvasCount = 0;
         for (const canvas of canvases) {
             if ((canvas.rendering || []).some(r => r.format === 'image/svg+xml')) svgCount++;
-            else if (canvas.annotations?.[0]?.id) derivedCount++;
+            else if (hasManifestBundle) manifestCount++;
+            else if (canvas.annotations?.[0]?.id) perCanvasCount++;
         }
-        const noneCount = canvases.length - svgCount - derivedCount;
+        const noneCount = canvases.length - svgCount - manifestCount - perCanvasCount;
         const indicator = document.getElementById('textOverlayIndicator');
         if (svgCount === canvases.length) {
             indicator.textContent = 'SVG text overlays';
             indicator.className = 'svg';
-        } else if (derivedCount === canvases.length) {
-            indicator.textContent = 'Text derived from annotations';
+        } else if (manifestCount === canvases.length) {
+            indicator.textContent = 'Text from manifest annotations';
+            indicator.className = 'manifest';
+        } else if (perCanvasCount === canvases.length) {
+            indicator.textContent = 'Text from per-canvas annotations';
             indicator.className = 'derived';
         } else if (noneCount === canvases.length) {
             indicator.textContent = 'No text overlays';
             indicator.className = 'none';
         } else {
             const parts = [];
-            if (svgCount)     parts.push(`${svgCount} SVG`);
-            if (derivedCount) parts.push(`${derivedCount} derived`);
-            if (noneCount)    parts.push(`${noneCount} none`);
+            if (svgCount)       parts.push(`${svgCount} SVG`);
+            if (manifestCount)  parts.push(`${manifestCount} manifest`);
+            if (perCanvasCount) parts.push(`${perCanvasCount} per-canvas`);
+            if (noneCount)      parts.push(`${noneCount} none`);
             indicator.textContent = parts.join(', ');
             indicator.className = 'mixed';
         }

@@ -435,6 +435,36 @@ const layoutEl = document.getElementById('layout');
         return svg;
     }
 
+    // --- Manifest-level annotation bundle ---
+
+    function hasCompleteProfile(page) {
+        const profile = page.profile;
+        if (!profile) return false;
+        const profiles = Array.isArray(profile) ? profile : [profile];
+        return profiles.some(p => typeof p === 'string' && (p.includes('complete') || p.includes('all-text')));
+    }
+
+    // Returns a Promise<Map<canvasId, annotation[]>> if a complete annotation
+    // bundle is found in manifest.annotations, otherwise Promise<null>.
+    function tryLoadManifestAnnotations(manifest) {
+        const page = (manifest.annotations || []).find(hasCompleteProfile);
+        if (!page?.id) return Promise.resolve(null);
+
+        return fetch(page.id)
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(annoPage => {
+                const map = new Map();
+                for (const anno of annoPage.items || []) {
+                    if (typeof anno.target !== 'string') continue;
+                    const canvasId = anno.target.split('#')[0];
+                    if (!map.has(canvasId)) map.set(canvasId, []);
+                    map.get(canvasId).push(anno);
+                }
+                return map;
+            })
+            .catch(() => null);
+    }
+
     // --- Viewer builder ---
 
     function buildViewer(manifest) {
@@ -469,6 +499,10 @@ const layoutEl = document.getElementById('layout');
             indicator.textContent = parts.join(', ');
             indicator.className = 'mixed';
         }
+
+        // Start the manifest annotation fetch before the canvas loop.
+        // Each canvas chains off this single Promise rather than fetching individually.
+        const manifestAnnosPromise = tryLoadManifestAnnotations(manifest);
 
         const containerEls = [];
         const thumbEls = [];
@@ -521,20 +555,31 @@ const layoutEl = document.getElementById('layout');
                     })
                     .catch(() => {});
             } else {
-                const annoPage = canvas.annotations?.[0];
-                if (annoPage?.id) {
-                    fetch(annoPage.id)
-                        .then(r => r.ok ? r.json() : Promise.reject())
-                        .then(page => {
-                            const partOf = page.partOf?.[0];
-                            const w = (partOf?.type === 'Canvas' && partOf.width) ? partOf.width : canvas.width;
-                            const h = (partOf?.type === 'Canvas' && partOf.height) ? partOf.height : canvas.height;
-                            if (!w || !h) return;
-                            const svgEl = buildSvgFromAnnotations(w, h, page.items || []);
-                            container.appendChild(svgEl);
-                        })
-                        .catch(() => {});
-                }
+                manifestAnnosPromise.then(manifestAnnos => {
+                    if (manifestAnnos?.has(canvas.id)) {
+                        // Use the pre-fetched manifest bundle — no extra request needed
+                        const items = manifestAnnos.get(canvas.id);
+                        if (canvas.width && canvas.height && items.length) {
+                            container.appendChild(
+                                buildSvgFromAnnotations(canvas.width, canvas.height, items)
+                            );
+                        }
+                    } else {
+                        // Fall back to the per-canvas annotation page
+                        const annoPage = canvas.annotations?.[0];
+                        if (!annoPage?.id) return;
+                        fetch(annoPage.id)
+                            .then(r => r.ok ? r.json() : Promise.reject())
+                            .then(page => {
+                                const partOf = page.partOf?.[0];
+                                const w = (partOf?.type === 'Canvas' && partOf.width) ? partOf.width : canvas.width;
+                                const h = (partOf?.type === 'Canvas' && partOf.height) ? partOf.height : canvas.height;
+                                if (!w || !h) return;
+                                container.appendChild(buildSvgFromAnnotations(w, h, page.items || []));
+                            })
+                            .catch(() => {});
+                    }
+                });
             }
 
             // --- Thumbnail ---

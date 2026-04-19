@@ -671,8 +671,10 @@ const layoutEl = document.getElementById('layout');
         if (!divider.hasPointerCapture(e.pointerId)) return;
         divider.releasePointerCapture(e.pointerId);
         dragIndicator.style.display = 'none';
-        // Apply the resize once on release
+        // Apply the resize once on release, then restore the current canvas
+        // to view (canvas heights change with width due to aspect-ratio)
         scrollPanel.style.width = clampDragX(e.clientX) + 'px';
+        _containerEls[_currentIdx]?.scrollIntoView({ block: 'center' });
         divider.classList.remove('active');
         document.body.style.userSelect = '';
         upgradeVisibleImages(_containerEls);

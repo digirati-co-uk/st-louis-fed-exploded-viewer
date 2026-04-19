@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IIIF Viewer</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body { font-family: sans-serif; background: #f2f2f2; overflow: hidden; }
+
+        .layout {
+            display: flex;
+            height: 100vh;
+        }
+
+        .scroll-panel {
+            flex: 0 0 70%;
+            overflow-y: auto;
+            background: #f2f2f2;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .side-panel {
+            flex: 0 0 30%;
+            background: #eaeaea;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .side-panel-header {
+            flex-shrink: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .side-panel-thumbnails {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .manifest-label {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .page-count {
+            font-size: 0.85em;
+            color: #555;
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            background: #e8e0d0;
+            border: 2px solid transparent;
+        }
+
+        .image-container.current {
+            border-color: #0066cc;
+        }
+
+        .image-container img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            user-select: none;
+        }
+
+        /* SVG text overlay: fills the container, text transparent but selectable */
+        .text-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .nav-bar {
+            display: flex;
+            gap: 6px;
+        }
+
+        .nav-bar button {
+            flex: 1;
+            padding: 6px 4px;
+            font-size: 0.85em;
+            cursor: pointer;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        .nav-bar button:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .manifest-input-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .manifest-input-row input {
+            flex: 1;
+            min-width: 0;
+            padding: 5px 8px;
+            font-size: 0.8em;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+        }
+
+        .manifest-input-row button {
+            padding: 5px 10px;
+            font-size: 0.8em;
+            cursor: pointer;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            background: #fff;
+            white-space: nowrap;
+        }
+
+        .thumbnail-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .thumbnail-item {
+            cursor: pointer;
+            text-align: center;
+            width: 56px;
+        }
+
+        .thumbnail-item img {
+            display: block;
+            width: 56px;
+            height: 70px;
+            object-fit: contain;
+            border: 2px solid transparent;
+            background: #ccc;
+        }
+
+        .thumbnail-item.active img {
+            border-color: #0066cc;
+        }
+
+        .thumbnail-item p {
+            font-size: 9px;
+            color: #555;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #loading {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(242, 242, 242, 0.95);
+            font-size: 1.2em;
+            z-index: 100;
+        }
+
+        #error {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(242, 242, 242, 0.95);
+            z-index: 100;
+            flex-direction: column;
+            gap: 16px;
+            padding: 40px;
+            text-align: center;
+            color: #c00;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="loading">Loading manifest&hellip;</div>
+
+<div id="error"></div>
+
+
+<div class="layout" id="layout">
+    <div class="scroll-panel" id="scrollPanel"></div>
+    <div class="side-panel" id="sidePanel">
+        <div class="side-panel-header">
+            <div class="nav-bar">
+                <button id="btnPrev" onclick="navigateCanvas(-1)" disabled>&lt; Previous</button>
+                <button id="btnNext" onclick="navigateCanvas(1)" disabled>Next &gt;</button>
+            </div>
+            <div class="manifest-input-row">
+                <input type="url" id="manifestUriInput" placeholder="Manifest URL&hellip;" />
+                <button onclick="loadManifestFromInput()">Load</button>
+            </div>
+            <div class="manifest-label" id="manifestLabel"></div>
+            <div class="page-count" id="pageCount"></div>
+        </div>
+        <div class="side-panel-thumbnails">
+            <div class="thumbnail-grid" id="thumbnailGrid"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const params = new URLSearchParams(location.search);
+    const manifestUrl = params.get('manifest');
+    const initialCanvasId = params.get('canvas');
+
+    const scrollPanel = document.getElementById('scrollPanel');
+    const thumbnailGrid = document.getElementById('thumbnailGrid');
+    const manifestLabelEl = document.getElementById('manifestLabel');
+    const pageCountEl = document.getElementById('pageCount');
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error');
+const layoutEl = document.getElementById('layout');
+
+    layoutEl.style.visibility = 'hidden';
+
+    if (!manifestUrl) {
+        loadingEl.style.display = 'none';
+        layoutEl.style.visibility = '';
+    } else {
+        fetch(manifestUrl)
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status} loading manifest`);
+                return r.json();
+            })
+            .then(manifest => buildViewer(manifest))
+            .catch(err => showError(err.message));
+    }
+
+    function loadManifestFromInput() {
+        const url = document.getElementById('manifestUriInput').value.trim();
+        if (url) {
+            location.search = new URLSearchParams({ manifest: url }).toString();
+        }
+    }
+
+    // Allow pressing Enter in the manifest input to load
+    document.getElementById('manifestUriInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') loadManifestFromInput();
+    });
+
+    if (manifestUrl) {
+        document.getElementById('manifestUriInput').value = manifestUrl;
+    }
+
+    let _containerEls = [];
+    let _thumbEls = [];
+    let _currentIdx = 0;
+
+    function navigateCanvas(delta) {
+        const next = _currentIdx + delta;
+        if (next >= 0 && next < _containerEls.length) {
+            _containerEls[next].scrollIntoView({ block: 'center', behavior: 'smooth' });
+            setCurrentCanvas(next, _containerEls, _thumbEls);
+        }
+    }
+
+    function showError(msg) {
+        loadingEl.style.display = 'none';
+        errorEl.innerHTML = `<strong>Error</strong><p>${msg}</p>`;
+        errorEl.style.display = 'flex';
+    }
+
+    // --- IIIF helpers ---
+
+    function getLabel(langMap) {
+        if (!langMap) return '';
+        const vals = langMap[Object.keys(langMap)[0]];
+        return Array.isArray(vals) ? vals[0] : (vals || '');
+    }
+
+    function findImageService(services) {
+        if (!Array.isArray(services)) return null;
+        return services.find(s => {
+            const type = s['@type'] || s.type || '';
+            return type.startsWith('ImageService');
+        }) || null;
+    }
+
+    function getSizedImage(imageBody, preferredSize) {
+        const svc = findImageService(imageBody.service);
+        if (!svc) {
+            return { id: imageBody.id, width: imageBody.width, height: imageBody.height };
+        }
+        const sizes = svc.sizes || [];
+        const svcId = svc['@id'] || svc.id;
+        if (sizes.length === 0) {
+            return { id: imageBody.id, width: imageBody.width, height: imageBody.height };
+        }
+        let chosen = null;
+        for (const size of sizes) {
+            if (size.width >= preferredSize || size.height >= preferredSize) {
+                if (!chosen || size.width < chosen.width) chosen = size;
+            }
+        }
+        if (!chosen) chosen = sizes.reduce((a, b) => a.width > b.width ? a : b);
+        return {
+            id: `${svcId}/full/${chosen.width},${chosen.height}/0/default.jpg`,
+            width: chosen.width,
+            height: chosen.height
+        };
+    }
+
+    function getLargestSizedImage(imageBody) {
+        const svc = findImageService(imageBody.service);
+        if (!svc) {
+            return { id: imageBody.id, width: imageBody.width, height: imageBody.height };
+        }
+        const sizes = svc.sizes || [];
+        const svcId = svc['@id'] || svc.id;
+
+        if (sizes.length > 0) {
+            const largest = sizes.reduce((a, b) => a.width > b.width ? a : b);
+            return {
+                id: `${svcId}/full/${largest.width},${largest.height}/0/default.jpg`,
+                width: largest.width,
+                height: largest.height
+            };
+        }
+
+        // No sizes listed in the manifest — use the image body's id directly,
+        // which is already a pre-sized URL. Avoids requesting beyond listed sizes.
+        return { id: imageBody.id, width: imageBody.width, height: imageBody.height };
+    }
+
+    function getCanvasImageBody(canvas) {
+        const annos = canvas.items?.[0]?.items || [];
+        return annos.find(a => a.body?.type === 'Image')?.body || null;
+    }
+
+    function getCanvasThumbnail(canvas) {
+        const thumbnails = canvas.thumbnail || [];
+        if (thumbnails.length > 0) {
+            return getSizedImage(thumbnails[0], 0);
+        }
+        const body = getCanvasImageBody(canvas);
+        return body ? getSizedImage(body, 0) : null;
+    }
+
+    // --- Viewer builder ---
+
+    function buildViewer(manifest) {
+        const label = getLabel(manifest.label) || 'Untitled Manifest';
+        manifestLabelEl.textContent = label;
+        document.title = label;
+
+        const canvases = manifest.items || [];
+        pageCountEl.textContent = `${canvases.length} pages`;
+
+        const containerEls = [];
+        const thumbEls = [];
+
+        canvases.forEach((canvas, idx) => {
+            const imageBody = getCanvasImageBody(canvas);
+            const thumb = getCanvasThumbnail(canvas);
+            const canvasLabel = getLabel(canvas.label) || `Page ${idx + 1}`;
+
+            // --- Main page container ---
+            const container = document.createElement('div');
+            container.className = 'image-container';
+            container.dataset.index = idx;
+            container.dataset.canvasId = canvas.id;
+
+            if (canvas.width && canvas.height) {
+                container.style.aspectRatio = `${canvas.width} / ${canvas.height}`;
+            }
+
+            const img = document.createElement('img');
+            img.alt = canvasLabel;
+
+            // Thumbnails are tiny (~66px) so load all eagerly — pages are never blank
+            // when scrolling fast. The IntersectionObserver upgrades to a larger size.
+            if (thumb) img.src = thumb.id;
+            if (imageBody) {
+                const full = getLargestSizedImage(imageBody);
+                img.dataset.fullSrc = full.id;
+            }
+
+            container.appendChild(img);
+            scrollPanel.appendChild(container);
+            containerEls.push(container);
+
+            // --- SVG text overlay ---
+            const svgRendering = (canvas.rendering || []).find(r => r.format === 'image/svg+xml');
+            if (svgRendering?.id) {
+                const svgUrl = svgRendering.id;
+                fetch(svgUrl, { cache: 'force-cache' })
+                    .then(r => r.ok ? r.text() : Promise.reject(new Error(`SVG HTTP ${r.status}`)))
+                    .then(svgText => {
+                        const tmp = document.createElement('div');
+                        tmp.innerHTML = svgText;
+                        const svgEl = tmp.firstElementChild;
+                        if (svgEl?.tagName.toLowerCase() === 'svg') {
+                            svgEl.removeAttribute('width');
+                            svgEl.removeAttribute('height');
+                            svgEl.classList.add('text-overlay');
+                            container.appendChild(svgEl);
+                        }
+                    })
+                    .catch(() => {});
+            }
+
+            // --- Thumbnail ---
+            const thumbItem = document.createElement('div');
+            thumbItem.className = 'thumbnail-item';
+            thumbItem.dataset.index = idx;
+
+            const thumbImg = document.createElement('img');
+            if (thumb) thumbImg.src = thumb.id;
+            thumbImg.loading = 'lazy';
+            thumbImg.alt = canvasLabel;
+
+            const thumbLabel = document.createElement('p');
+            thumbLabel.textContent = idx + 1;
+
+            thumbItem.appendChild(thumbImg);
+            thumbItem.appendChild(thumbLabel);
+            thumbnailGrid.appendChild(thumbItem);
+            thumbEls.push(thumbItem);
+
+            thumbItem.addEventListener('click', () => {
+                container.scrollIntoView({ block: 'center' });
+            });
+        });
+
+        // --- Scroll: track current page; upgrade to full-res when scroll stops ---
+        let scrollTimer = null;
+        scrollPanel.addEventListener('scroll', () => {
+            clearTimeout(scrollTimer);
+            scrollTimer = setTimeout(() => {
+                updateCurrentCanvas(containerEls, thumbEls);
+                upgradeVisibleImages(containerEls);
+            }, 150);
+        });
+
+        // --- Initial scroll to requested canvas ---
+        _containerEls = containerEls;
+        _thumbEls = thumbEls;
+
+        loadingEl.style.display = 'none';
+        layoutEl.style.visibility = '';
+
+        let initialIdx = 0;
+        if (initialCanvasId) {
+            const found = canvases.findIndex(c => c.id === initialCanvasId);
+            if (found >= 0) initialIdx = found;
+        }
+
+        setTimeout(() => {
+            containerEls[initialIdx]?.scrollIntoView({ block: 'center' });
+            setCurrentCanvas(initialIdx, containerEls, thumbEls);
+            upgradeVisibleImages(containerEls);
+        }, 50);
+    }
+
+    // --- Current-canvas tracking ---
+
+    function updateCurrentCanvas(containerEls, thumbEls) {
+        const panelRect = scrollPanel.getBoundingClientRect();
+        // Scan from the bottom: last container whose top is in the upper half of the panel
+        let currentIdx = 0;
+        for (let i = containerEls.length - 1; i >= 0; i--) {
+            const rect = containerEls[i].getBoundingClientRect();
+            if (rect.top <= panelRect.top + panelRect.height * 0.5) {
+                currentIdx = i;
+                break;
+            }
+        }
+        setCurrentCanvas(currentIdx, containerEls, thumbEls);
+    }
+
+    function setCurrentCanvas(idx, containerEls, thumbEls) {
+        _currentIdx = idx;
+        document.getElementById('btnPrev').disabled = idx === 0;
+        document.getElementById('btnNext').disabled = idx === containerEls.length - 1;
+
+        containerEls.forEach((c, i) => c.classList.toggle('current', i === idx));
+        thumbEls.forEach((t, i) => {
+            const wasActive = t.classList.contains('active');
+            t.classList.toggle('active', i === idx);
+            if (i === idx && !wasActive) {
+                t.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        });
+        // Reflect current canvas in the URL
+        const canvasId = containerEls[idx]?.dataset.canvasId;
+        if (canvasId) {
+            const p = new URLSearchParams(location.search);
+            p.set('canvas', canvasId);
+            history.replaceState(null, '', '?' + p.toString());
+        }
+    }
+
+    function upgradeVisibleImages(containerEls) {
+        const panelRect = scrollPanel.getBoundingClientRect();
+        containerEls.forEach(container => {
+            const rect = container.getBoundingClientRect();
+            const visible = rect.bottom > panelRect.top && rect.top < panelRect.bottom;
+            if (visible) {
+                const img = container.querySelector('img');
+                if (img?.dataset.fullSrc && img.src !== img.dataset.fullSrc) {
+                    img.src = img.dataset.fullSrc;
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>

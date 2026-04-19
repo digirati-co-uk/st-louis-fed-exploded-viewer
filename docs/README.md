@@ -2,7 +2,7 @@
 
 ### Manifest with per-canvas SVG
 
-[https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/?manifest=https%3A%2F%2Fiiif.wellcomecollection.org%2Fpresentation%2Fb28047345&canvas=https%3A%2F%2Fiiif.wellcomecollection.org%2Fpresentation%2Fb28047345%2Fcanvases%2Fb28047345_0001.jp2](The transformations (or metamorphoses) of insects)
+[https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/?manifest=https%3A%2F%2Fiiif.wellcomecollection.org%2Fpresentation%2Fb28047345](The transformations (or metamorphoses) of insects)
 
 Each Canvas has a `rendering` property linking to SVG XML:
 
@@ -27,7 +27,7 @@ The viewer uses the SVG directly as the overlay source.
 
 ### Manifest with W3C annotations
 
-[https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/?manifest=https%3A%2F%2Fiiif.wellcomecollection.org%2Fpresentation%2Fb31356412&canvas=https%3A%2F%2Fiiif.wellcomecollection.org%2Fpresentation%2Fb31356412%2Fcanvases%2Fb31356412_0031.jp2](The universe, or, The infinitely great and the infinitely little)
+[https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/?manifest=https%3A%2F%2Fiiif.wellcomecollection.org%2Fpresentation%2Fb31356412](The universe, or, The infinitely great and the infinitely little)
 
 Each canvas has a link to `annotations`:
 
@@ -52,6 +52,8 @@ The viewer computes the SVG (using the same approach taken server-side on the pr
 > Note that if this particular Manifest is re-processed at Wellcome, it will acquire SVG annotations on the server and will use them by default.
 
 ### Manifest with single all-text annotation page
+
+[https://digirati-co-uk.github.io/st-louis-fed-exploded-viewer/?manifest=https%3A%2F%2Fdigirati-co-uk.github.io%2Fst-louis-fed-exploded-viewer%2Fb28047345.json](The transformations (or metamorphoses) of insects - MUTATED)
 
 This Manifest has been _augmented_ by DLCS text services; it has a `manifest.annotations` property that links to a single file containing ALL the annotations:
 

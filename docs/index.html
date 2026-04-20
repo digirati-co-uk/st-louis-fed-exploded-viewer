@@ -249,6 +249,9 @@
                 <input type="url" id="manifestUriInput" placeholder="Manifest URL&hellip;" />
                 <button onclick="loadManifestFromInput()">Load</button>
             </div>
+            <label style="font-size:0.8em; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="encodeContentState"> Encode content state
+            </label>
             <div class="manifest-label" id="manifestLabel"></div>
             <div class="page-count" id="pageCount"></div>
             <div id="textOverlayIndicator"></div>
@@ -260,9 +263,43 @@
 </div>
 
 <script>
+    function encodeContentState(obj) {
+        const json = JSON.stringify(obj);
+        return btoa(unescape(encodeURIComponent(json))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    }
+
+    function decodeContentState(str) {
+        try { const o = JSON.parse(str); if (o && o.type) return { obj: o, encoded: false }; } catch {}
+        try {
+            const json = decodeURIComponent(escape(atob(str.replace(/-/g, '+').replace(/_/g, '/'))));
+            const o = JSON.parse(json);
+            if (o && o.type) return { obj: o, encoded: true };
+        } catch {}
+        return null;
+    }
+
     const params = new URLSearchParams(location.search);
-    const manifestUrl = params.get('manifest');
-    const initialCanvasId = params.get('canvas');
+    let manifestUrl = null;
+    let initialCanvasId = null;
+    let _encodeContentState = false;
+    let _manifestUrl = null;
+
+    const iiifContent = params.get('iiif-content');
+    if (iiifContent) {
+        const result = decodeContentState(iiifContent);
+        if (result) {
+            _encodeContentState = result.encoded;
+            if (result.obj.type === 'Canvas') {
+                initialCanvasId = result.obj.id;
+                manifestUrl = result.obj.partOf?.[0]?.id || null;
+            } else if (result.obj.type === 'Manifest') {
+                manifestUrl = result.obj.id;
+            }
+        }
+    } else {
+        manifestUrl = params.get('manifest');
+        initialCanvasId = params.get('canvas');
+    }
 
     const scrollPanel = document.getElementById('scrollPanel');
     const thumbnailGrid = document.getElementById('thumbnailGrid');
@@ -283,7 +320,7 @@ const layoutEl = document.getElementById('layout');
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 return r.json();
             })
-            .then(manifest => buildViewer(manifest))
+            .then(manifest => { _manifestUrl = manifestUrl; buildViewer(manifest); })
             .catch(err => {
                 const isNetworkError = err instanceof TypeError;
                 const isLocal = /^https?:\/\/localhost|^https?:\/\/127\./.test(manifestUrl);
@@ -301,9 +338,11 @@ const layoutEl = document.getElementById('layout');
 
     function loadManifestFromInput() {
         const url = document.getElementById('manifestUriInput').value.trim();
-        if (url) {
-            location.search = new URLSearchParams({ manifest: url }).toString();
-        }
+        if (!url) return;
+        const cs = { id: url, type: 'Manifest' };
+        const encoded = document.getElementById('encodeContentState').checked;
+        const value = encoded ? encodeContentState(cs) : JSON.stringify(cs);
+        location.search = new URLSearchParams({ 'iiif-content': value }).toString();
     }
 
     // Allow pressing Enter in the manifest input to load
@@ -314,6 +353,18 @@ const layoutEl = document.getElementById('layout');
     if (manifestUrl) {
         document.getElementById('manifestUriInput').value = manifestUrl;
     }
+
+    const encodeCheckbox = document.getElementById('encodeContentState');
+    encodeCheckbox.checked = _encodeContentState;
+    encodeCheckbox.addEventListener('change', e => {
+        _encodeContentState = e.target.checked;
+        const canvasId = _containerEls[_currentIdx]?.dataset.canvasId;
+        if (canvasId && _manifestUrl) {
+            const cs = { id: canvasId, type: 'Canvas', partOf: [{ id: _manifestUrl, type: 'Manifest' }] };
+            const value = _encodeContentState ? encodeContentState(cs) : JSON.stringify(cs);
+            history.replaceState(null, '', '?' + new URLSearchParams({ 'iiif-content': value }));
+        }
+    });
 
     let _containerEls = [];
     let _thumbEls = [];
@@ -683,12 +734,12 @@ const layoutEl = document.getElementById('layout');
                 t.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             }
         });
-        // Reflect current canvas in the URL
+        // Reflect current canvas in the URL as IIIF Content State
         const canvasId = containerEls[idx]?.dataset.canvasId;
-        if (canvasId) {
-            const p = new URLSearchParams(location.search);
-            p.set('canvas', canvasId);
-            history.replaceState(null, '', '?' + p.toString());
+        if (canvasId && _manifestUrl) {
+            const cs = { id: canvasId, type: 'Canvas', partOf: [{ id: _manifestUrl, type: 'Manifest' }] };
+            const value = _encodeContentState ? encodeContentState(cs) : JSON.stringify(cs);
+            history.replaceState(null, '', '?' + new URLSearchParams({ 'iiif-content': value }));
         }
     }
 
